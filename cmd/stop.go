@@ -47,7 +47,7 @@ var stopCmd = &cobra.Command{
 		duration := time.Since(running.StartTime)
 
 		fmt.Printf("[tmpo] Stopped tracking '%s'\n", running.ProjectName)
-		fmt.Printf("	Duration: %s\n", formatDuration(duration))
+		fmt.Printf("	Total Duration: %s\n", formatDuration(duration))
 	},
 }
 
