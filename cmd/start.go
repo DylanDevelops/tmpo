@@ -3,8 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
+	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/spf13/cobra"
 )
@@ -37,22 +38,19 @@ var startCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		cwd, err := os.Getwd()
+		projectName, err := DetectProjectName()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
-
+			fmt.Fprintf(os.Stderr, "Error detecting project: %v\n", err)
+			
 			os.Exit(1)
 		}
-		
-		projectName := filepath.Base(cwd)
-		
+				
 		description := ""
 		if len(args) > 0 {
 			description = args[0]
 		}
 
 		entry, err := db.CreateEntry(projectName, description)
-
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 
@@ -61,10 +59,35 @@ var startCmd = &cobra.Command{
 
 		fmt.Printf("[tmpo] Started tracking time for '%s'\n", entry.ProjectName)
 
+		if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil {
+			fmt.Println("    Source: .tmporc")
+		} else if project.IsInGitRepo() {
+			fmt.Println("    Source: git repository")
+		} else {
+			fmt.Println("    Source: directory name")
+		}
+
 		if description != "" {
-			fmt.Printf("	Description: %s\n", description)
+			fmt.Printf("    Description: %s\n", description)
 		}
 	},
+}
+
+// DetectProjectName returns the name of the current project.
+// It first attempts to load a configuration via config.FindAndLoad; if a configuration
+// is found and its ProjectName field is non-empty, that value is returned.
+// If no configuration or project name is available, DetectProjectName falls back to
+// project.DetectProject() to determine the project name from the repository or environment.
+// The function returns the determined project name and any error encountered during
+// configuration loading or fallback detection.
+func DetectProjectName() (string, error) {
+	if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil {
+		if cfg.ProjectName != "" {
+			return cfg.ProjectName, nil
+		}
+	}
+
+	return project.DetectProject()
 }
 
 func init() {
