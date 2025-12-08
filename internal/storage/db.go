@@ -186,6 +186,172 @@ func (d *Database) GetEntry(id int64) (*TimeEntry, error) {
 	return &entry, nil
 }
 
+// GetEntries retrieves time entries from the Database.
+//
+// It returns time entries ordered by start_time in descending order. If limit > 0,
+// at most `limit` entries are returned; if limit <= 0 all matching entries are returned.
+// Each returned element is a pointer to a TimeEntry. The EndTime field of a TimeEntry
+// will be nil when the corresponding end_time column in the database is NULL.
+//
+// The function performs a SQL query selecting id, project_name, start_time, end_time,
+// and description. It returns a slice of entries and an error if the query or row
+// scanning fails; any underlying error is wrapped.
+func (d *Database) GetEntries(limit int) ([]*TimeEntry, error) {
+	query := `
+		SELECT id, project_name, start_time, end_time, description
+		FROM time_entries
+		ORDER BY start_time DESC
+	`
+
+	if limit > 0 {
+		query += fmt.Sprintf(" LIMIT %d", limit)
+	}
+
+	rows, err := d.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query entries: %w", err)
+	}
+	
+	defer rows.Close()
+
+	var entries []*TimeEntry
+
+	for rows.Next() {
+		var entry TimeEntry
+		var endTime sql.NullTime
+
+		err := rows.Scan(&entry.ID, &entry.ProjectName, &entry.StartTime, &endTime, &entry.Description)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan entry: %w", err)
+		}
+
+		if endTime.Valid {
+			entry.EndTime = &endTime.Time
+		}
+
+		entries = append(entries, &entry)
+	}
+
+	return entries, nil
+}
+
+// GetEntriesByProject retrieves time entries for the specified projectName from the
+// time_entries table. Results are ordered by start_time in descending order (newest first).
+//
+// For each row a TimeEntry is populated. If the end_time column is NULL the returned
+// TimeEntry.EndTime will be nil; otherwise EndTime will point to the scanned time.Time.
+//
+// On success the function returns a slice of pointers to TimeEntry. If there are no
+// matching rows the returned slice will have length 0 (it may be nil). On failure the
+// function returns a non-nil error and a nil slice. Errors may originate from the
+// query execution, row scanning, or row iteration.
+func (d *Database) GetEntriesByProject(projectName string) ([]*TimeEntry, error) {
+	rows, err := d.db.Query(`
+		SELECT id, project_name, start_time, end_time, description
+		FROM time_entries
+		WHERE project_name = ?
+		ORDER BY start_time DESC
+	`, projectName)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query entries: %w", err)
+	}
+
+	defer rows.Close()
+
+	var entries []*TimeEntry
+
+	for rows.Next() {
+		var entry TimeEntry
+		var endTime sql.NullTime
+
+		err := rows.Scan(&entry.ID, &entry.ProjectName, &entry.StartTime, &endTime, &entry.Description)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan entry: %w", err)
+		}
+
+		if endTime.Valid {
+			entry.EndTime = &endTime.Time
+		}
+
+		entries = append(entries, &entry)
+	}
+
+	return entries, nil
+}
+
+// GetEntriesByDateRange retrieves time entries whose start_time falls between start and end (inclusive).
+// Results are returned in descending order by start_time.
+// The provided start and end times are passed to the database driver as-is; callers should ensure they use the intended timezone/representation.
+// For rows with a NULL end_time the returned TimeEntry.EndTime will be nil; otherwise EndTime points to the parsed time value.
+// Returns a slice of pointers to TimeEntry (which may be empty) or an error if the database query or row scanning fails.
+func (d *Database) GetEntriesByDateRange(start, end time.Time) ([]*TimeEntry, error) {
+	rows, err := d.db.Query(`
+		SELECT id, project_name, start_time, end_time, description
+		FROM time_entries
+		WHERE start_time BETWEEN ? AND ?
+		ORDER BY start_time DESC
+	`, start, end)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query entries: %w", err)
+	}
+
+	defer rows.Close()
+	
+	var entries []*TimeEntry
+	
+	for rows.Next() {
+		var entry TimeEntry
+		var endTime sql.NullTime
+
+		err := rows.Scan(&entry.ID, &entry.ProjectName, &entry.StartTime, &endTime, &entry.Description)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan entry: %w", err)
+		}
+
+		if endTime.Valid {
+			entry.EndTime = &endTime.Time
+		}
+
+		entries = append(entries, &entry)
+	}
+
+	return entries, nil
+}
+
+// GetAllProjects retrieves all distinct project names from the time_entries table.
+// The results are returned in ascending order by project_name.
+// On success it returns a slice of project names (which will be empty if no projects exist)
+// and a nil error. If the underlying database query or a row scan fails, it returns a
+// non-nil error describing the failure.
+func (d *Database) GetAllProjects() ([]string, error) {
+	rows, err := d.db.Query(`
+		SELECT DISTINCT project_name
+		FROM time_entries
+		ORDER BY project_name
+	`)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query projects: %w", err)
+	}
+
+	defer rows.Close()
+
+	var projects []string
+
+	for rows.Next() {
+		var project string
+		if err := rows.Scan(&project); err != nil {
+			return nil, fmt.Errorf("failed to scan project: %w", err)
+		}
+
+		projects = append(projects, project)
+	}
+
+	return projects, nil
+}
+
 // Close closes the Database, releasing any underlying resources.
 // It delegates to the wrapped database's Close method and returns any error encountered.
 // After Close is called, the Database must not be used for further operations.
