@@ -1,9 +1,16 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+)
+
+var (
+	Version = "dev"
+	Commit  = "none"
+	Date    = "unknown"
 )
 
 var rootCmd = &cobra.Command{
@@ -13,6 +20,7 @@ var rootCmd = &cobra.Command{
 
 A minimal, developer-friendly time tracking tool that lives in your terminal.
 Track time effortlessly with automatic project detection and simple commands.`,
+	Version: Version,
 }
 
 func Execute() {
@@ -23,5 +31,8 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Version = "0.1.0"
+	rootCmd.SetVersionTemplate(fmt.Sprintf(
+		"tmpo version %s\ncommit: %s\nbuilt: %s\n",
+		Version, Commit, Date,
+	))
 }

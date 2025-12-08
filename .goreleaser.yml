@@ -1,0 +1,117 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  # macOS (both Intel and Apple Silicon)
+  - id: darwin
+    binary: tmpo
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/DylanDevelops/tmpo/cmd.Version={{.Version}}
+      - -X github.com/DylanDevelops/tmpo/cmd.Commit={{.Commit}}
+      - -X github.com/DylanDevelops/tmpo/cmd.Date={{.Date}}
+
+  # Windows
+  - id: windows
+    binary: tmpo
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+    goos:
+      - windows
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w
+      - -X github.com/DylanDevelops/tmpo/cmd.Version={{.Version}}
+      - -X github.com/DylanDevelops/tmpo/cmd.Commit={{.Commit}}
+      - -X github.com/DylanDevelops/tmpo/cmd.Date={{.Date}}
+
+  # Linux
+  - id: linux
+    binary: tmpo
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/DylanDevelops/tmpo/cmd.Version={{.Version}}
+      - -X github.com/DylanDevelops/tmpo/cmd.Commit={{.Commit}}
+      - -X github.com/DylanDevelops/tmpo/cmd.Date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+
+release:
+  github:
+    owner: DylanDevelops
+    name: tmpo
+  draft: false
+  prerelease: auto
+  name_template: "{{.ProjectName}} v{{.Version}}"
+
+# Homebrew
+brews:
+  - name: tmpo
+    repository:
+      owner: DylanDevelops
+      name: tmpo
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    homepage: "https://github.com/DylanDevelops/tmpo"
+    description: "Minimal CLI time tracker for developers"
+    license: "MIT"
+
+    skip_upload: true # Turn to false when first release is ready
+
+    install: |
+      bin.install "tmpo"
+
+    test: |
+      system "#{bin}/tmpo", "--version"
