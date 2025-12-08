@@ -19,7 +19,7 @@ var (
 var logCmd = &cobra.Command{
 	Use:   "log",
 	Short: "View time tracking history",
-	Long: `Display past time tracking entries with optional filtering.`,
+	Long:  `Display past time tracking entries with optional filtering.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db, err := storage.Initialize()
 

@@ -22,7 +22,7 @@ var (
 var exportCmd = &cobra.Command{
 	Use:   "export",
 	Short: "Export time entries",
-	Long: `Export time tracking data to different formats.`,
+	Long:  `Export time tracking data to different formats.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db, err := storage.Initialize()
 		if err != nil {
