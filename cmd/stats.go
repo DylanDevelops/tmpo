@@ -70,6 +70,22 @@ var statsCmd = &cobra.Command{
 	},
 }
 
+// ShowPeriodStats prints aggregated statistics for a named period to standard
+// output. Given a slice of *storage.TimeEntry and a human-readable periodName,
+// the function:
+//
+//  - returns early with a message if entries is empty,
+//  - computes and prints the total accumulated time and its hour equivalent,
+//  - prints the total number of entries,
+//  - aggregates time by project and prints a per-project line with duration and
+//    percentage of the total,
+//  - attempts to load configuration and, if a positive hourly rate is present,
+//    prints an estimated earnings line.
+//
+// Aggregation is done via a map[string]time.Duration; iteration order is
+// therefore non-deterministic. Percentages are computed as projectSeconds /
+// totalSeconds * 100, so if the total duration is zero the percentage values
+// may be undefined (NaN/Inf). All output is produced using fmt.
 func ShowPeriodStats(entries []*storage.TimeEntry, periodName string) {
 	if len(entries) == 0 {
 		fmt.Printf("No entries for %s.\n", periodName)
@@ -103,6 +119,21 @@ func ShowPeriodStats(entries []*storage.TimeEntry, periodName string) {
 	}
 }
 
+// ShowAllTimeStats prints aggregated all-time statistics to standard output.
+// Given a slice of *storage.TimeEntry and a pointer to the database, the
+// function:
+//
+//  - returns early with a message if entries is empty,
+//  - computes and prints the total accumulated time and its hour equivalent,
+//  - prints the total number of entries and number of tracked projects,
+//  - aggregates time by project and prints a per-project line with duration and
+//    percentage of the total.
+//
+// The function fetches the list of projects from the provided database to
+// determine the number of projects tracked. Aggregation is done via a
+// map[string]time.Duration; iteration order is therefore non-deterministic.
+// If the total duration is zero, percentage values may be undefined. All
+// output is produced using fmt.
 func ShowAllTimeStats(entries []*storage.TimeEntry, db *storage.Database) {
 	if len(entries) == 0 {
 		fmt.Println("No entries found.")
