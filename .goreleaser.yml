@@ -79,21 +79,46 @@ snapshot:
   version_template: "{{ incpatch .Version }}-next"
 
 changelog:
+  use: github
   sort: asc
+  abbrev: 0
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: 'Performance Improvements'
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: 'Documentation'
+      regexp: '^.*?docs?(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: 'Dependency Updates'
+      regexp: '^.*?(feat|fix|chore)\(deps?\):?.+$'
+      order: 4
+    - title: Other
+      order: 999
   filters:
     exclude:
       - '^docs:'
       - '^test:'
       - '^chore:'
       - '^ci:'
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
 
 release:
   github:
     owner: DylanDevelops
     name: tmpo
   draft: true # Turn to false when first release is ready
+  draft: true
   prerelease: auto
-  name_template: "{{.ProjectName}} v{{.Version}}"
+  name_template: "tmpo {{.Version}}"
 
 # Homebrew
 brews:
