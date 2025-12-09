@@ -116,7 +116,6 @@ release:
     owner: DylanDevelops
     name: tmpo
   draft: true # Turn to false when first release is ready
-  draft: true
   prerelease: auto
   name_template: "tmpo {{.Version}}"
 
