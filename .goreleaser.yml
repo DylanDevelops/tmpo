@@ -79,9 +79,8 @@ snapshot:
   version_template: "{{ incpatch .Version }}-next"
 
 changelog:
-  use: github
+  use: github-native
   sort: asc
-  abbrev: 0
   groups:
     - title: ✨ Features
       regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
