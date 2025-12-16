@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -31,8 +30,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.SetVersionTemplate(fmt.Sprintf(
-		"tmpo version %s\ncommit: %s\nbuilt: %s\n",
-		Version, Commit, Date,
-	))
+	rootCmd.SetVersionTemplate(GetVersionOutput())
 }
