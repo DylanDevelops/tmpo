@@ -9,6 +9,7 @@ import (
 
 	"github.com/DylanDevelops/tmpo/internal/config"
 	"github.com/DylanDevelops/tmpo/internal/project"
+	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -22,8 +23,10 @@ var initCmd = &cobra.Command{
 	Short: "Initialize a .tmporc config file",
 	Long:  `Create a .tmporc configuration file in the current directory using an interactive form.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ui.NewlineAbove()
+
 		if _, err := os.Stat(".tmporc"); err == nil {
-			fmt.Println("Error: .tmporc already exists in this directory")
+			ui.PrintError(ui.EmojiError, ".tmporc already exists in this directory")
 			os.Exit(1)
 		}
 
@@ -41,7 +44,8 @@ var initCmd = &cobra.Command{
 			description = ""
 		} else {
 			// Interactive form
-			fmt.Println("\n[tmpo] Initialize Project Configuration")
+			ui.PrintSuccess(ui.EmojiInit, "Initialize Project Configuration")
+			fmt.Println()
 
 			// Project Name prompt
 			namePrompt := promptui.Prompt{
@@ -51,7 +55,7 @@ var initCmd = &cobra.Command{
 
 			nameInput, err := namePrompt.Run()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)
 			}
 
@@ -68,7 +72,7 @@ var initCmd = &cobra.Command{
 
 			rateInput, err := ratePrompt.Run()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)
 			}
 
@@ -76,7 +80,7 @@ var initCmd = &cobra.Command{
 			if rateInput != "" {
 				hourlyRate, err = strconv.ParseFloat(rateInput, 64)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error parsing hourly rate: %v\n", err)
+					ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing hourly rate: %v", err))
 					os.Exit(1)
 				}
 			}
@@ -88,7 +92,7 @@ var initCmd = &cobra.Command{
 
 			descInput, err := descPrompt.Run()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)
 			}
 
@@ -98,19 +102,23 @@ var initCmd = &cobra.Command{
 		// Create the .tmporc file
 		err := config.CreateWithTemplate(name, hourlyRate, description)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
-		fmt.Printf("\n[tmpo] Created .tmporc for project '%s'\n", name)
+		fmt.Println()
+		ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created .tmporc for project '%s'", name))
 		if hourlyRate > 0 {
-			fmt.Printf("    Hourly Rate: $%.2f\n", hourlyRate)
+			ui.PrintInfo(4, "Hourly Rate", fmt.Sprintf("$%.2f", hourlyRate))
 		}
 		if description != "" {
-			fmt.Printf("    Description: %s\n", description)
+			ui.PrintInfo(4, "Description", description)
 		}
 
-		fmt.Println("\nYou can edit .tmporc to customize your project settings.")
+		fmt.Println()
+		ui.PrintMuted(0, "You can edit .tmporc to customize your project settings.")
+
+		ui.NewlineBelow()
 	},
 }
 

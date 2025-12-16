@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/storage"
+	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -21,10 +22,12 @@ var logCmd = &cobra.Command{
 	Short: "View time tracking history",
 	Long:  `Display past time tracking entries with optional filtering.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ui.NewlineAbove()
+
 		db, err := storage.Initialize()
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -42,7 +45,7 @@ var logCmd = &cobra.Command{
 			if weekday == 0 {
 				weekday = 7 // sunday
 			}
-			
+
 			start := now.AddDate(0, 0, -weekday+1).Truncate(24 * time.Hour)
 			end := start.AddDate(0, 0, 7)
 			entries, err = db.GetEntriesByDateRange(start, end)
@@ -53,17 +56,18 @@ var logCmd = &cobra.Command{
 		}
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
 		if len(entries) == 0 {
-			fmt.Println("No time entries found.")
-			
+			ui.PrintWarning(ui.EmojiWarning, "No time entries found.")
+			ui.NewlineBelow()
 			return
 		}
 
-		fmt.Printf("\n[tmpo] Time Entries (%d total)\n\n", len(entries))
+		ui.PrintSuccess(ui.EmojiLog, fmt.Sprintf("Time Entries (%d total)", len(entries)))
+		fmt.Println()
 
 		var totalDuration time.Duration
 		currentDate := ""
@@ -75,28 +79,31 @@ var logCmd = &cobra.Command{
 					fmt.Println()
 				}
 
-				fmt.Printf("─── %s ───\n", entryDate)
+				fmt.Println(ui.Muted(fmt.Sprintf("─── %s ───", entryDate)))
 				currentDate = entryDate
 			}
 
 			duration := entry.Duration()
 			totalDuration += duration
 
-			timeRange := entry.StartTime.Format("03:04 PM")
+			timeRange := entry.StartTime.Format("03:04 PM") + " - "
 			if entry.EndTime != nil {
-				timeRange += " - " + entry.EndTime.Format("03:04 PM")
+				timeRange += entry.EndTime.Format("03:04 PM") + "  "
 			} else {
-				timeRange += " - (running)"
+				timeRange += ui.Warning("(running)") + " "
 			}
 
-			fmt.Printf("  %s  %-20s  %s\n", timeRange, entry.ProjectName, formatDuration(duration))
+			fmt.Printf("  %s  %-20s  %s\n", timeRange, entry.ProjectName, ui.FormatDuration(duration))
 			if entry.Description != "" {
-				fmt.Printf("    └─ %s\n", entry.Description)
+				fmt.Printf("    %s %s\n", ui.Muted("└─"), entry.Description)
 			}
 		}
 
-		fmt.Printf("\n─────────────────────────────────────────\n")
-		fmt.Printf("Total Time: %s\n", formatDuration(totalDuration))
+		fmt.Println()
+		ui.PrintSeparator()
+		fmt.Printf("%s %s\n", ui.Info("Total Time:"), ui.FormatDuration(totalDuration))
+
+		ui.NewlineBelow()
 	},
 }
 

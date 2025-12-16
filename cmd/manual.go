@@ -9,6 +9,7 @@ import (
 	"github.com/DylanDevelops/tmpo/internal/config"
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/storage"
+	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -18,7 +19,9 @@ var manualCmd = &cobra.Command{
 	Short: "Create a manual time entry",
 	Long:  `Create a completed time entry by specifying start and end times using an interactive menu.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("\n[tmpo] Create Manual Time Entry")
+		ui.NewlineAbove()
+		ui.PrintSuccess(ui.EmojiManual, "Create Manual Time Entry")
+		fmt.Println()
 
 		defaultProject := detectProjectNameWithSource()
 
@@ -36,7 +39,7 @@ var manualCmd = &cobra.Command{
 
 		projectInput, err := projectPrompt.Run()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -46,7 +49,7 @@ var manualCmd = &cobra.Command{
 		}
 
 		if projectName == "" {
-			fmt.Fprintf(os.Stderr, "Error: project name cannot be empty\n")
+			ui.PrintError(ui.EmojiError, "project name cannot be empty")
 			os.Exit(1)
 		}
 
@@ -57,7 +60,7 @@ var manualCmd = &cobra.Command{
 
 		startDateInput, err := startDatePrompt.Run()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -68,7 +71,7 @@ var manualCmd = &cobra.Command{
 
 		startTimeStr, err := startTimePrompt.Run()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -81,7 +84,7 @@ var manualCmd = &cobra.Command{
 
 		endDateInput, err := endDatePrompt.Run()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -91,7 +94,7 @@ var manualCmd = &cobra.Command{
 		}
 
 		if err := validateDate(endDateInput); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -102,12 +105,12 @@ var manualCmd = &cobra.Command{
 
 		endTimeStr, err := endTimePrompt.Run()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
 		if err := validateEndDateTime(startDateInput, startTimeStr, endDateInput, endTimeStr); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -117,19 +120,19 @@ var manualCmd = &cobra.Command{
 
 		description, err := descriptionPrompt.Run()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
 		startTime, err := parseDateTime(startDateInput, startTimeStr)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error parsing start time: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing start time: %v", err))
 			os.Exit(1)
 		}
 
 		endTime, err := parseDateTime(endDateInput, endTimeStr)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error parsing end time: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing end time: %v", err))
 			os.Exit(1)
 		}
 
@@ -140,30 +143,31 @@ var manualCmd = &cobra.Command{
 
 		db, err := storage.Initialize()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 		defer db.Close()
 
 		entry, err := db.CreateManualEntry(projectName, description, startTime, endTime, hourlyRate)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
 		duration := entry.Duration()
-		fmt.Printf("\n[tmpo] Created manual entry for '%s'\n", entry.ProjectName)
-		fmt.Printf("    Start: %s\n", startTime.Format("Jan 2, 2006 at 3:04 PM"))
-		fmt.Printf("    End: %s\n", endTime.Format("Jan 2, 2006 at 3:04 PM"))
-		fmt.Printf("    Duration: %s\n", formatDuration(duration))
+		fmt.Println()
+		ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created manual entry for '%s'", entry.ProjectName))
+		ui.PrintInfo(4, "Start", startTime.Format("Jan 2, 2006 at 3:04 PM"))
+		ui.PrintInfo(4, "End", endTime.Format("Jan 2, 2006 at 3:04 PM"))
+		ui.PrintInfo(4, "Duration", ui.FormatDuration(duration))
 
 		if entry.HourlyRate != nil {
 			earnings := duration.Hours() * *entry.HourlyRate
-			fmt.Printf("    Hourly Rate: $%.2f\n", *entry.HourlyRate)
-			fmt.Printf("    Estimated Earnings: $%.2f\n", earnings)
+			fmt.Printf("    %s %s\n", ui.Info("Hourly Rate:"), fmt.Sprintf("$%.2f", *entry.HourlyRate))
+			fmt.Printf("    %s %s\n", ui.Info("Estimated Earnings:"), ui.Success(fmt.Sprintf("$%.2f", earnings)))
 		}
 
-		fmt.Println()
+		ui.NewlineBelow()
 	},
 }
 

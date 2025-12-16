@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -22,11 +23,13 @@ var versionCmd = &cobra.Command{
 // GetVersionOutput returns the formatted version string used by both
 // the version subcommand and the -v/--version flags
 func GetVersionOutput() string {
-	return fmt.Sprintf("\ntmpo version %s %s\n%s\n\n", Version, GetFormattedDate(Date), GetChangelogUrl(Version))
+	versionLine := fmt.Sprintf("tmpo version %s %s", ui.Success(Version), ui.Muted(GetFormattedDate(Date)))
+	changelogLine := ui.Muted(GetChangelogUrl(Version))
+	return fmt.Sprintf("\n%s\n%s\n\n", versionLine, changelogLine)
 }
 
 // GetFormattedDate parses inputDate as an RFC3339 timestamp and returns the date
-// formatted as "YYYY-MM-DD" wrapped in parentheses (for example "(01-02-2006)").
+// formatted as "MM-DD-YYYY" wrapped in parentheses (for example "(01-02-2006)").
 // If inputDate is empty or cannot be parsed as RFC3339, it returns an empty string.
 func GetFormattedDate(inputDate string) string {
 	if inputDate == "" {

@@ -7,6 +7,7 @@ import (
 	"github.com/DylanDevelops/tmpo/internal/config"
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/storage"
+	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -15,10 +16,11 @@ var startCmd = &cobra.Command{
 	Short: "Start tracking time",
 	Long:  `Start a new time tracking session for the current project.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ui.NewlineAbove()
+
 		db, err := storage.Initialize()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -26,22 +28,20 @@ var startCmd = &cobra.Command{
 
 		running, err := db.GetRunningEntry()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
 		if running != nil {
-			fmt.Fprintf(os.Stderr, "Error: Already tracking time for `%s`\n", running.ProjectName)
-			fmt.Println("Use 'tmpo stop' to stop the current session first.")
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("Already tracking time for `%s`", running.ProjectName))
+			ui.PrintMuted(0, "Use 'tmpo stop' to stop the current session first.")
+			ui.NewlineBelow()
 			os.Exit(1)
 		}
 
 		projectName, err := DetectProjectName()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error detecting project: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
 			os.Exit(1)
 		}
 
@@ -58,24 +58,25 @@ var startCmd = &cobra.Command{
 
 		entry, err := db.CreateEntry(projectName, description, hourlyRate)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
-		fmt.Printf("[tmpo] Started tracking time for '%s'\n", entry.ProjectName)
+		ui.PrintSuccess(ui.EmojiStart, fmt.Sprintf("Started tracking time for '%s'", entry.ProjectName))
 
 		if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil {
-			fmt.Println("    Config Source: .tmporc")
+			ui.PrintInfo(4, "Config Source", ".tmporc")
 		} else if project.IsInGitRepo() {
-			fmt.Println("    Config Source: git repository")
+			ui.PrintInfo(4, "Config Source", "git repository")
 		} else {
-			fmt.Println("    Config Source: directory name")
+			ui.PrintInfo(4, "Config Source", "directory name")
 		}
 
 		if description != "" {
-			fmt.Printf("    Description: %s\n", description)
+			ui.PrintInfo(4, "Description", description)
 		}
+
+		ui.NewlineBelow()
 	},
 }
 

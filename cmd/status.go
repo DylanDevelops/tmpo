@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/storage"
+	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -15,38 +16,41 @@ var statusCmd = &cobra.Command{
 	Long:  `Display information about the currently running time tracking session.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		ui.NewlineAbove()
+
 		db, err := storage.Initialize()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
-		
+
 		defer db.Close()
 
 		running, err := db.GetRunningEntry()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
 		if running == nil {
-			fmt.Println("[tmpo] Not currently tracking time")
-			fmt.Println("\nUse 'tmpo start' to begin tracking")
-			
+			ui.PrintWarning(ui.EmojiWarning, "Not currently tracking time")
+			ui.NewlineBelow()
+			ui.PrintMuted(0, "Use 'tmpo start' to begin tracking")
+			ui.NewlineBelow()
 			return
 		}
 
 		duration := time.Since(running.StartTime)
 
-		fmt.Printf("[tmpo] Currently tracking: %s\n", running.ProjectName)
-		fmt.Printf("    Started: %s\n", running.StartTime.Format("3:04 PM"))
-		fmt.Printf("    Duration: %s\n", formatDuration(duration))
+		ui.PrintSuccess(ui.EmojiStatus, fmt.Sprintf("Currently tracking: %s", running.ProjectName))
+		ui.PrintInfo(4, "Started", running.StartTime.Format("3:04 PM"))
+		ui.PrintInfo(4, "Duration", ui.FormatDuration(duration))
 
 		if running.Description != "" {
-			fmt.Printf("    Description: %s\n", running.Description)
+			ui.PrintInfo(4, "Description", running.Description)
 		}
+
+		ui.NewlineBelow()
 	},
 }
 

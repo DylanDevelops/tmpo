@@ -8,6 +8,7 @@ import (
 
 	"github.com/DylanDevelops/tmpo/internal/export"
 	"github.com/DylanDevelops/tmpo/internal/storage"
+	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -24,10 +25,11 @@ var exportCmd = &cobra.Command{
 	Short: "Export time entries",
 	Long:  `Export time tracking data to different formats.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ui.NewlineAbove()
+
 		db, err := storage.Initialize()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
@@ -56,14 +58,13 @@ var exportCmd = &cobra.Command{
 		}
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
 		if len(entries) == 0 {
-			fmt.Println("No entries to export.")
-
+			ui.PrintWarning(ui.EmojiWarning, "No entries to export.")
+			ui.NewlineBelow()
 			os.Exit(0)
 		}
 
@@ -91,18 +92,18 @@ var exportCmd = &cobra.Command{
 		case "json":
 			err = export.ToJson(entries, filename)
 		default:
-			fmt.Fprintf(os.Stderr, "Error: Unknown format '%s'. Use 'csv' or 'json'\n", exportFormat)
-			
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("Unknown format '%s'. Use 'csv' or 'json'", exportFormat))
 			os.Exit(1)
 		}
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
+			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 			os.Exit(1)
 		}
 
-		fmt.Printf("[tmpo] Exported %d entries to %s\n", len(entries), filename)
+		ui.PrintSuccess(ui.EmojiExport, fmt.Sprintf("Exported %d entries to %s", len(entries), filename))
+
+		ui.NewlineBelow()
 	},
 }
 
