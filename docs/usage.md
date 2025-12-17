@@ -129,6 +129,64 @@ This is useful for:
 - Adding entries when you forgot to start the timer
 - Correcting tracking mistakes
 
+### `tmpo edit`
+
+Edit an existing time entry using an interactive menu. Select an entry and modify its start time, end time, or description.
+
+**Options:**
+
+- `--show-all-projects` - Show project selection before entry selection
+
+**Examples:**
+
+```bash
+tmpo edit                        # Edit entries from current project
+tmpo edit --show-all-projects    # Select project first, then entry
+```
+
+**Interactive Flow:**
+
+1. Select an entry from the list (shows completed entries only)
+2. Edit start date and time (press Enter to keep current value)
+3. Edit end date and time (press Enter to keep current value)
+4. Edit description (press Enter to keep current value)
+5. Review your changes with a diff view
+6. Confirm to save or discard changes
+
+**When to use:**
+
+- Correct accidentally recorded times
+- Fix typos in descriptions
+- Adjust times when you forgot to stop the timer
+- Update entries after reviewing your work log
+
+### `tmpo delete`
+
+Delete a time entry using an interactive menu. Select an entry and confirm deletion.
+
+**Options:**
+
+- `--show-all-projects` - Show project selection before entry selection
+
+**Examples:**
+
+```bash
+tmpo delete                        # Delete entries from current project
+tmpo delete --show-all-projects    # Select project first, then entry
+```
+
+**Interactive Flow:**
+
+1. Select an entry from the list (shows all entries, including running ones)
+2. Review the entry details
+3. Confirm deletion (defaults to "No" for safety)
+
+**When to use:**
+
+- Remove duplicate entries
+- Delete test/accidental entries
+- Clean up your time tracking history
+
 ### `tmpo export`
 
 Export your time tracking data to CSV or JSON.
