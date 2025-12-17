@@ -20,7 +20,7 @@
 
 ## Installation
 
-### Recommended: Download Pre-built Binaries
+### Download Pre-built Binaries (Recommended)
 
 Download the latest release for your platform from the [releases page](https://github.com/DylanDevelops/tmpo/releases).
 
