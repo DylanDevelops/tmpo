@@ -2,7 +2,7 @@
 
 > Set the `tmpo` — A minimal CLI time tracker for developers.
 
-![screenshot of tmpo start and tmpo stats](https://github.com/user-attachments/assets/6480b22a-e148-4142-9cb8-0b4ef1007430)
+![screenshot of tmpo start and tmpo stats](https://github.com/user-attachments/assets/2142f136-6f0b-44b8-9043-7810b8b25142)
 
 **tmpo** allows you to track time effortlessly with simple commands that live in your terminal. Track time with automatic project detection, view stats, and export data; all without leaving your workspace.
 
