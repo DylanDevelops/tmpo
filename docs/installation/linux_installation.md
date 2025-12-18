@@ -5,7 +5,7 @@ This guide will walk you through installing tmpo on Linux.
 ## Prerequisites
 
 - Linux kernel 3.10 or later (most modern distributions)
-- For building from source: Go 1.21 or later
+- For building from source: Go 1.25 or later
 
 ## Method 1: Download Pre-built Binary (Recommended)
 
@@ -96,9 +96,9 @@ sudo pacman -S go
 **Or download from [golang.org/dl](https://golang.org/dl/):**
 
 ```bash
-# Download and install the latest version
-wget https://go.dev/dl/go1.23.0.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz
+# Download and install Go 1.25 or later
+wget https://go.dev/dl/go1.25.0.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.25.0.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
 source ~/.bashrc
 
