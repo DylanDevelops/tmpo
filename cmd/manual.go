@@ -156,19 +156,19 @@ var manualCmd = &cobra.Command{
 
 		duration := entry.Duration()
 		fmt.Println()
-		ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created manual entry for '%s'", entry.ProjectName))
-		ui.PrintInfo(4, "Start", startTime.Format("Jan 2, 2006 at 3:04 PM"))
-		ui.PrintInfo(4, "End", endTime.Format("Jan 2, 2006 at 3:04 PM"))
-		ui.PrintInfo(4, "Duration", ui.FormatDuration(duration))
+		ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created manual entry for %s", ui.Bold(entry.ProjectName)))
+		ui.PrintInfo(4, ui.Bold("Start"), startTime.Format("Jan 2, 2006 at 3:04 PM"))
+		ui.PrintInfo(4, ui.Bold("End"), endTime.Format("Jan 2, 2006 at 3:04 PM"))
+		ui.PrintInfo(4, ui.Bold("Duration"), ui.FormatDuration(duration))
 
 		if entry.Description != "" {
-			ui.PrintInfo(4, "Description", entry.Description)
+			ui.PrintInfo(4, ui.Bold("Description"), entry.Description)
 		}
 
 		if entry.HourlyRate != nil {
 			earnings := duration.Hours() * *entry.HourlyRate
-			fmt.Printf("    %s %s\n", ui.Info("Hourly Rate:"), fmt.Sprintf("$%.2f", *entry.HourlyRate))
-			fmt.Printf("    %s %s\n", ui.Info("Earnings:"), fmt.Sprintf("$%.2f", earnings))
+			fmt.Printf("    %s %s\n", ui.BoldInfo("Hourly Rate:"), fmt.Sprintf("$%.2f", *entry.HourlyRate))
+			fmt.Printf("    %s %s\n", ui.BoldInfo("Earnings:"), fmt.Sprintf("$%.2f", earnings))
 		}
 
 		ui.NewlineBelow()

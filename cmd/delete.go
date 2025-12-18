@@ -120,17 +120,17 @@ var deleteCmd = &cobra.Command{
 		fmt.Println()
 		ui.PrintWarning(ui.EmojiWarning, "You are about to delete this entry:")
 		fmt.Println()
-		ui.PrintInfo(4, "ID", fmt.Sprintf("%d", selectedEntry.ID))
-		ui.PrintInfo(4, "Project", selectedEntry.ProjectName)
-		ui.PrintInfo(4, "Start", selectedEntry.StartTime.Format("Jan 2, 2006 at 3:04 PM"))
+		ui.PrintInfo(4, ui.Bold("ID"), fmt.Sprintf("%d", selectedEntry.ID))
+		ui.PrintInfo(4, ui.Bold("Project"), selectedEntry.ProjectName)
+		ui.PrintInfo(4, ui.Bold("Start"), selectedEntry.StartTime.Format("Jan 2, 2006 at 3:04 PM"))
 		if selectedEntry.EndTime != nil {
-			ui.PrintInfo(4, "End", selectedEntry.EndTime.Format("Jan 2, 2006 at 3:04 PM"))
-			ui.PrintInfo(4, "Duration", ui.FormatDuration(selectedEntry.Duration()))
+			ui.PrintInfo(4, ui.Bold("End"), selectedEntry.EndTime.Format("Jan 2, 2006 at 3:04 PM"))
+			ui.PrintInfo(4, ui.Bold("Duration"), ui.FormatDuration(selectedEntry.Duration()))
 		} else {
-			ui.PrintInfo(4, "Status", ui.Warning("Running"))
+			ui.PrintInfo(4, ui.Bold("Status"), ui.Warning("Running"))
 		}
 		if selectedEntry.Description != "" {
-			ui.PrintInfo(4, "Description", selectedEntry.Description)
+			ui.PrintInfo(4, ui.Bold("Description"), selectedEntry.Description)
 		}
 		fmt.Println()
 

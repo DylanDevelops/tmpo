@@ -107,12 +107,12 @@ var initCmd = &cobra.Command{
 		}
 
 		fmt.Println()
-		ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created .tmporc for project '%s'", name))
+		ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created .tmporc for project %s", ui.Bold(name)))
 		if hourlyRate > 0 {
-			ui.PrintInfo(4, "Hourly Rate", fmt.Sprintf("$%.2f", hourlyRate))
+			ui.PrintInfo(4, ui.Bold("Hourly Rate"), fmt.Sprintf("$%.2f", hourlyRate))
 		}
 		if description != "" {
-			ui.PrintInfo(4, "Description", description)
+			ui.PrintInfo(4, ui.Bold("Description"), description)
 		}
 
 		fmt.Println()

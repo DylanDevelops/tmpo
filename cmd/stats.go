@@ -110,20 +110,20 @@ func ShowPeriodStats(entries []*storage.TimeEntry, periodName string) {
 		}
 	}
 
-	ui.PrintSuccess(ui.EmojiStats, fmt.Sprintf("Stats for %s", periodName))
+	ui.PrintSuccess(ui.EmojiStats, fmt.Sprintf("Stats for %s", ui.Bold(periodName)))
 	fmt.Println()
-	ui.PrintInfo(4, "Total Time", fmt.Sprintf("%s (%.2f hours)", ui.FormatDuration(totalDuration), totalDuration.Hours()))
-	ui.PrintInfo(4, "Total Entries", fmt.Sprintf("%d", len(entries)))
+	ui.PrintInfo(4, ui.Bold("Total Time"), fmt.Sprintf("%s (%.2f hours)", ui.FormatDuration(totalDuration), totalDuration.Hours()))
+	ui.PrintInfo(4, ui.Bold("Total Entries"), fmt.Sprintf("%d", len(entries)))
 
 	if hasAnyEarnings {
-		ui.PrintInfo(4, "Earnings", fmt.Sprintf("$%.2f", totalEarnings))
+		ui.PrintInfo(4, ui.Bold("Earnings"), fmt.Sprintf("$%.2f", totalEarnings))
 	}
 
 	fmt.Println()
-	ui.PrintInfo(4, "By Project", "")
+	ui.PrintInfo(4, ui.Bold("By Project"), "")
 	for project, duration := range projectStats {
 		percentage := (duration.Seconds() / totalDuration.Seconds()) * 100
-		fmt.Printf("        %-20s  %s  (%.1f%%)\n", project, ui.FormatDuration(duration), percentage)
+		fmt.Printf("        %s  %s  (%.1f%%)\n", ui.Bold(fmt.Sprintf("%-20s", project)), ui.FormatDuration(duration), percentage)
 
 		if earnings, ok := projectEarnings[project]; ok && earnings > 0 {
 			fmt.Printf("        %s %s\n", ui.Muted("└─ Earnings:"), fmt.Sprintf("$%.2f", earnings))
@@ -176,20 +176,20 @@ func ShowAllTimeStats(entries []*storage.TimeEntry, db *storage.Database) {
 
 	projects, _ := db.GetAllProjects()
 
-	ui.PrintSuccess(ui.EmojiStats, "All-Time Statistics")
-	ui.PrintInfo(4, "Total Time", fmt.Sprintf("%s (%.2f hours)", ui.FormatDuration(totalDuration), totalDuration.Hours()))
-	ui.PrintInfo(4, "Total Entries", fmt.Sprintf("%d", len(entries)))
-	ui.PrintInfo(4, "Projects Tracked", fmt.Sprintf("%d", len(projects)))
+	ui.PrintSuccess(ui.EmojiStats, ui.Bold("All-Time Statistics"))
+	ui.PrintInfo(4, ui.Bold("Total Time"), fmt.Sprintf("%s (%.2f hours)", ui.FormatDuration(totalDuration), totalDuration.Hours()))
+	ui.PrintInfo(4, ui.Bold("Total Entries"), fmt.Sprintf("%d", len(entries)))
+	ui.PrintInfo(4, ui.Bold("Projects Tracked"), fmt.Sprintf("%d", len(projects)))
 
 	if hasAnyEarnings {
-		ui.PrintInfo(4, "Earnings", fmt.Sprintf("$%.2f", totalEarnings))
+		ui.PrintInfo(4, ui.Bold("Earnings"), fmt.Sprintf("$%.2f", totalEarnings))
 	}
 
 	fmt.Println()
-	ui.PrintInfo(4, "By Project", "")
+	ui.PrintInfo(4, ui.Bold("By Project"), "")
 	for project, duration := range projectStats {
 		percentage := (duration.Seconds() / totalDuration.Seconds()) * 100
-		fmt.Printf("        %-20s  %s  (%.1f%%)\n", project, ui.FormatDuration(duration), percentage)
+		fmt.Printf("        %s  %s  (%.1f%%)\n", ui.Bold(fmt.Sprintf("%-20s", project)), ui.FormatDuration(duration), percentage)
 
 		if earnings, ok := projectEarnings[project]; ok && earnings > 0 {
 			fmt.Printf("        %s %s\n", ui.Muted("└─ Earnings:"), fmt.Sprintf("$%.2f", earnings))

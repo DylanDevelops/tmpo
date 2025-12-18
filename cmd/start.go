@@ -62,7 +62,7 @@ var startCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		ui.PrintSuccess(ui.EmojiStart, fmt.Sprintf("Started tracking time for '%s'", entry.ProjectName))
+		ui.PrintSuccess(ui.EmojiStart, fmt.Sprintf("Started tracking time for %s", ui.Bold(entry.ProjectName)))
 
 		if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil {
 			ui.PrintMuted(4, "└─ Config Source: .tmporc")

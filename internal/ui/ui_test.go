@@ -49,28 +49,28 @@ func TestFormattingFunctions(t *testing.T) {
 		result := Bold("test")
 		assert.Contains(t, result, FormatBold)
 		assert.Contains(t, result, "test")
-		assert.Contains(t, result, ColorReset)
+		assert.Contains(t, result, ResetBoldDim)
 	})
 
 	t.Run("Dim adds dim formatting", func(t *testing.T) {
 		result := Dim("test")
 		assert.Contains(t, result, FormatDim)
 		assert.Contains(t, result, "test")
-		assert.Contains(t, result, ColorReset)
+		assert.Contains(t, result, ResetBoldDim)
 	})
 
 	t.Run("Italic adds italic formatting", func(t *testing.T) {
 		result := Italic("test")
 		assert.Contains(t, result, FormatItalic)
 		assert.Contains(t, result, "test")
-		assert.Contains(t, result, ColorReset)
+		assert.Contains(t, result, ResetItalic)
 	})
 
 	t.Run("Underline adds underline formatting", func(t *testing.T) {
 		result := Underline("test")
 		assert.Contains(t, result, FormatUnderline)
 		assert.Contains(t, result, "test")
-		assert.Contains(t, result, ColorReset)
+		assert.Contains(t, result, ResetUnderline)
 	})
 }
 
@@ -180,6 +180,9 @@ func TestConstants(t *testing.T) {
 		assert.NotEmpty(t, FormatDim)
 		assert.NotEmpty(t, FormatItalic)
 		assert.NotEmpty(t, FormatUnderline)
+		assert.NotEmpty(t, ResetBoldDim)
+		assert.NotEmpty(t, ResetItalic)
+		assert.NotEmpty(t, ResetUnderline)
 	})
 
 	t.Run("Emoji constants are defined", func(t *testing.T) {

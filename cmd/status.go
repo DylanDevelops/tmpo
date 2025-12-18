@@ -42,12 +42,12 @@ var statusCmd = &cobra.Command{
 
 		duration := time.Since(running.StartTime)
 
-		ui.PrintSuccess(ui.EmojiStatus, fmt.Sprintf("Currently tracking: %s", running.ProjectName))
-		ui.PrintInfo(4, "Started", running.StartTime.Format("3:04 PM"))
-		ui.PrintInfo(4, "Duration", ui.FormatDuration(duration))
+		ui.PrintSuccess(ui.EmojiStatus, fmt.Sprintf("Currently tracking: %s", ui.Bold(running.ProjectName)))
+		ui.PrintInfo(4, ui.Bold("Started"), running.StartTime.Format("3:04 PM"))
+		ui.PrintInfo(4, ui.Bold("Duration"), ui.FormatDuration(duration))
 
 		if running.Description != "" {
-			ui.PrintInfo(4, "Description", running.Description)
+			ui.PrintInfo(4, ui.Bold("Description"), running.Description)
 		}
 
 		ui.NewlineBelow()

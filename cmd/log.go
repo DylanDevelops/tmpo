@@ -79,7 +79,7 @@ var logCmd = &cobra.Command{
 					fmt.Println()
 				}
 
-				fmt.Println(ui.Muted(fmt.Sprintf("─── %s ───", entryDate)))
+				fmt.Println(ui.Bold(ui.Muted(fmt.Sprintf("─── %s ───", entryDate))))
 				currentDate = entryDate
 			}
 
@@ -93,7 +93,7 @@ var logCmd = &cobra.Command{
 				timeRange += ui.Warning("(running)") + " "
 			}
 
-			fmt.Printf("  %s  %-20s  %s\n", timeRange, entry.ProjectName, ui.FormatDuration(duration))
+			fmt.Printf("  %s  %s  %s\n", timeRange, ui.Bold(fmt.Sprintf("%-20s", entry.ProjectName)), ui.FormatDuration(duration))
 			if entry.Description != "" {
 				fmt.Printf("    %s %s\n", ui.Muted("└─"), entry.Description)
 			}
@@ -101,7 +101,7 @@ var logCmd = &cobra.Command{
 
 		fmt.Println()
 		ui.PrintSeparator()
-		fmt.Printf("%s %s\n", ui.Info("Total Time:"), ui.FormatDuration(totalDuration))
+		fmt.Printf("%s %s\n", ui.BoldInfo("Total Time:"), ui.Bold(ui.FormatDuration(totalDuration)))
 
 		ui.NewlineBelow()
 	},

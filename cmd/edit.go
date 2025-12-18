@@ -251,7 +251,7 @@ var editCmd = &cobra.Command{
 
 		// Show confirmation with diff
 		fmt.Println()
-		ui.PrintInfo(0, "Changes to entry", fmt.Sprintf("#%d", selectedEntry.ID))
+		ui.PrintInfo(0, ui.Bold("Changes to entry"), fmt.Sprintf("#%d", selectedEntry.ID))
 		fmt.Println()
 
 		hasChanges := false
@@ -260,19 +260,19 @@ var editCmd = &cobra.Command{
 			hasChanges = true
 			oldStr := selectedEntry.StartTime.Format("01-02-2006 3:04 PM")
 			newStr := editedEntry.StartTime.Format("01-02-2006 3:04 PM")
-			fmt.Printf("    Start time: %s → %s\n", ui.Muted(oldStr), newStr)
+			fmt.Printf("    %s %s → %s\n", ui.Bold("Start time:"), ui.Muted(oldStr), newStr)
 		}
 
 		if !selectedEntry.EndTime.Equal(*editedEntry.EndTime) {
 			hasChanges = true
 			oldStr := selectedEntry.EndTime.Format("01-02-2006 3:04 PM")
 			newStr := editedEntry.EndTime.Format("01-02-2006 3:04 PM")
-			fmt.Printf("    End time:   %s → %s\n", ui.Muted(oldStr), newStr)
+			fmt.Printf("    %s %s → %s\n", ui.Bold("End time:"), ui.Muted(oldStr), newStr)
 		}
 
 		if selectedEntry.Description != editedEntry.Description {
 			hasChanges = true
-			fmt.Printf("    Description: %s → %s\n", ui.Muted(fmt.Sprintf("%q", selectedEntry.Description)), fmt.Sprintf("%q", editedEntry.Description))
+			fmt.Printf("    %s %s → %s\n", ui.Bold("Description:"), ui.Muted(fmt.Sprintf("%q", selectedEntry.Description)), fmt.Sprintf("%q", editedEntry.Description))
 		}
 
 		if !hasChanges {

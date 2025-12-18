@@ -23,6 +23,11 @@ const (
 	FormatDim       = "\033[2m"
 	FormatItalic    = "\033[3m"
 	FormatUnderline = "\033[4m"
+
+	// Specific reset codes (don't reset colors)
+	ResetBoldDim    = "\033[22m" // Reset bold and dim
+	ResetItalic     = "\033[23m" // Reset italic
+	ResetUnderline  = "\033[24m" // Reset underline
 )
 
 // Emoji Constants
@@ -68,22 +73,22 @@ func Muted(message string) string {
 
 // Bold text formatting functions that return formatted string
 func Bold(message string) string {
-	return FormatBold + message + ColorReset
+	return FormatBold + message + ResetBoldDim
 }
 
 // Dim text formatting functions that return formatted string
 func Dim(message string) string {
-	return FormatDim + message + ColorReset
+	return FormatDim + message + ResetBoldDim
 }
 
 // Italic text formatting functions that return formatted string
 func Italic(message string) string {
-	return FormatItalic + message + ColorReset
+	return FormatItalic + message + ResetItalic
 }
 
 // Underline text formatting functions that return formatted string
 func Underline(message string) string {
-	return FormatUnderline + message + ColorReset
+	return FormatUnderline + message + ResetUnderline
 }
 
 // Bold success combined formatting functions for common use cases

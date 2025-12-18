@@ -101,7 +101,7 @@ var exportCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		ui.PrintSuccess(ui.EmojiExport, fmt.Sprintf("Exported %d entries to %s", len(entries), filename))
+		ui.PrintSuccess(ui.EmojiExport, fmt.Sprintf("Exported %s to %s", ui.Bold(fmt.Sprintf("%d entries", len(entries))), ui.Bold(filename)))
 
 		ui.NewlineBelow()
 	},

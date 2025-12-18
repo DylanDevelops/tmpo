@@ -45,8 +45,8 @@ var stopCmd = &cobra.Command{
 
 		duration := time.Since(running.StartTime)
 
-		ui.PrintSuccess(ui.EmojiStop, fmt.Sprintf("Stopped tracking '%s'", running.ProjectName))
-		ui.PrintInfo(4, "Total Duration", ui.FormatDuration(duration))
+		ui.PrintSuccess(ui.EmojiStop, fmt.Sprintf("Stopped tracking %s", ui.Bold(running.ProjectName)))
+		ui.PrintInfo(4, ui.Bold("Total Duration"), ui.FormatDuration(duration))
 
 		ui.NewlineBelow()
 	},
