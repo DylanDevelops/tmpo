@@ -6,7 +6,7 @@ Thank you for your interest in contributing to tmpo! This document provides guid
 
 ### Prerequisites
 
-- Go 1.21 or higher
+- Go 1.25 or higher
 - Git
 
 ### Setting Up Your Development Environment

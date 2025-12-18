@@ -5,7 +5,7 @@ This guide will walk you through installing tmpo on macOS.
 ## Prerequisites
 
 - macOS 11 (Big Sur) or later
-- For building from source: Go 1.21 or later
+- For building from source: Go 1.25 or later
 
 ## Method 1: Download Pre-built Binary (Recommended)
 
