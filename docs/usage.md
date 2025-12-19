@@ -27,6 +27,41 @@ Stop the currently running time entry.
 tmpo stop
 ```
 
+### `tmpo pause`
+
+Pause the currently running time entry. This is useful for taking quick breaks without losing context. The paused session can be resumed with `tmpo resume`.
+
+```bash
+tmpo pause
+# Output:
+# [tmpo] Paused tracking my-project
+#     Session Duration: 45m 23s
+#     Use 'tmpo resume' to continue tracking
+```
+
+**How it works:**
+
+- Stops the current time entry (records end time)
+- Use `tmpo resume` to start a new entry with the same project and description
+- Each pause creates a separate time entry, giving you a detailed audit trail
+
+### `tmpo resume`
+
+Resume time tracking by starting a new session with the same project and description as the last paused (or stopped) session.
+
+```bash
+tmpo resume
+# Output:
+# [tmpo] Resumed tracking time for my-project
+#     Description: Implementing feature
+```
+
+**Use cases:**
+
+- Continue work after a break
+- Resume after accidentally stopping the timer
+- Quickly restart the same task
+
 ### `tmpo status`
 
 View the current tracking session with elapsed time.
@@ -102,6 +137,7 @@ tmpo init --accept-defaults   # Creates .tmporc with defaults, no prompts
 ```
 
 This creates a `.tmporc` file with:
+
 - Project name from Git repo or directory name
 - Hourly rate of 0 (disabled)
 - Empty description
@@ -233,6 +269,22 @@ my-project,Implementing feature,2024-01-15 14:30:00,2024-01-15 16:45:00,2.25
 ```
 
 ## Tips and Workflows
+
+### Taking Breaks with Pause/Resume
+
+Use pause and resume for quick breaks without losing context:
+
+```bash
+tmpo start "Implementing authentication"
+# ... work for a while ...
+tmpo pause    # Take a lunch break
+# ... break time ...
+tmpo resume   # Continue same task
+# ... more work ...
+tmpo stop     # Done for the day
+```
+
+This creates separate entries for each work session, making it easy to see your actual working time versus break time when reviewing your log.
 
 ### Quick Daily Review
 

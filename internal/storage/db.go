@@ -188,6 +188,48 @@ func (d *Database) GetRunningEntry() (*TimeEntry, error) {
 	return &entry, nil
 }
 
+// GetLastStoppedEntry retrieves the most recently stopped time entry (i.e. has a non-NULL
+// end_time) from the time_entries table. The query orders by start_time descending and
+// returns at most one row.
+//
+// If there is no stopped entry, GetLastStoppedEntry returns (nil, nil). If the database
+// query or scan fails, it returns a non-nil error describing the failure.
+//
+// The function scans id, project_name, start_time, end_time, description and hourly_rate into a
+// TimeEntry. Since this query only returns stopped entries, the EndTime field will always be non-nil.
+// The HourlyRate field is set only if the scanned hourly_rate is non-NULL (sql.NullFloat64.Valid).
+func (d *Database) GetLastStoppedEntry() (*TimeEntry, error) {
+	var entry TimeEntry
+	var endTime sql.NullTime
+	var hourlyRate sql.NullFloat64
+
+	err := d.db.QueryRow(`
+		SELECT id, project_name, start_time, end_time, description, hourly_rate
+		FROM time_entries
+		WHERE end_time IS NOT NULL
+		ORDER BY start_time DESC
+		LIMIT 1
+	`).Scan(&entry.ID, &entry.ProjectName, &entry.StartTime, &endTime, &entry.Description, &hourlyRate)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get last stopped entry: %w", err)
+	}
+
+	if endTime.Valid {
+		entry.EndTime = &endTime.Time
+	}
+
+	if hourlyRate.Valid {
+		entry.HourlyRate = &hourlyRate.Float64
+	}
+
+	return &entry, nil
+}
+
 // StopEntry sets the end_time of the time entry identified by id to the current time.
 // It updates the corresponding row in the time_entries table using time.Now().
 // If the update fails (for example if the row does not exist or the database returns an error),
