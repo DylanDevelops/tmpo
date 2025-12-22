@@ -14,165 +14,169 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var manualCmd = &cobra.Command{
-	Use:   "manual",
-	Short: "Create a manual time entry",
-	Long:  `Create a completed time entry by specifying start and end times using an interactive menu.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		ui.NewlineAbove()
-		ui.PrintSuccess(ui.EmojiManual, "Create Manual Time Entry")
-		fmt.Println()
+func ManualCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "manual",
+		Short: "Create a manual time entry",
+		Long:  `Create a completed time entry by specifying start and end times using an interactive menu.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			ui.NewlineAbove()
+			ui.PrintSuccess(ui.EmojiManual, "Create Manual Time Entry")
+			fmt.Println()
 
-		defaultProject := detectProjectNameWithSource()
+			defaultProject := detectProjectNameWithSource()
 
-		var projectLabel string
-		if defaultProject != "" {
-			projectLabel = fmt.Sprintf("Project name: (%s)", defaultProject)
-		} else {
-			projectLabel = "Project name"
-		}
+			var projectLabel string
+			if defaultProject != "" {
+				projectLabel = fmt.Sprintf("Project name: (%s)", defaultProject)
+			} else {
+				projectLabel = "Project name"
+			}
 
-		projectPrompt := promptui.Prompt{
-			Label: projectLabel,
-			AllowEdit: true,
-		}
+			projectPrompt := promptui.Prompt{
+				Label: projectLabel,
+				AllowEdit: true,
+			}
 
-		projectInput, err := projectPrompt.Run()
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			projectInput, err := projectPrompt.Run()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		projectName := strings.TrimSpace(projectInput)
-		if projectName == "" {
-			projectName = defaultProject
-		}
+			projectName := strings.TrimSpace(projectInput)
+			if projectName == "" {
+				projectName = defaultProject
+			}
 
-		if projectName == "" {
-			ui.PrintError(ui.EmojiError, "project name cannot be empty")
-			os.Exit(1)
-		}
+			if projectName == "" {
+				ui.PrintError(ui.EmojiError, "project name cannot be empty")
+				os.Exit(1)
+			}
 
-		startDatePrompt := promptui.Prompt{
-			Label:    "Start date (MM-DD-YYYY)",
-			Validate: validateDate,
-		}
+			startDatePrompt := promptui.Prompt{
+				Label:    "Start date (MM-DD-YYYY)",
+				Validate: validateDate,
+			}
 
-		startDateInput, err := startDatePrompt.Run()
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			startDateInput, err := startDatePrompt.Run()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		startTimePrompt := promptui.Prompt{
-			Label:    "Start time (e.g., 9:30 AM or 14:30)",
-			Validate: validateTime,
-		}
+			startTimePrompt := promptui.Prompt{
+				Label:    "Start time (e.g., 9:30 AM or 14:30)",
+				Validate: validateTime,
+			}
 
-		startTimeStr, err := startTimePrompt.Run()
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			startTimeStr, err := startTimePrompt.Run()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		endDateLabel := fmt.Sprintf("End date (MM-DD-YYYY): (%s)", startDateInput)
+			endDateLabel := fmt.Sprintf("End date (MM-DD-YYYY): (%s)", startDateInput)
 
-		endDatePrompt := promptui.Prompt{
-			Label:     endDateLabel,
-			AllowEdit: true,
-		}
+			endDatePrompt := promptui.Prompt{
+				Label:     endDateLabel,
+				AllowEdit: true,
+			}
 
-		endDateInput, err := endDatePrompt.Run()
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			endDateInput, err := endDatePrompt.Run()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		endDateInput = strings.TrimSpace(endDateInput)
-		if endDateInput == "" {
-			endDateInput = startDateInput
-		}
+			endDateInput = strings.TrimSpace(endDateInput)
+			if endDateInput == "" {
+				endDateInput = startDateInput
+			}
 
-		if err := validateDate(endDateInput); err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			if err := validateDate(endDateInput); err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		endTimePrompt := promptui.Prompt{
-			Label:    "End time (e.g., 5:00 PM or 17:00)",
-			Validate: validateTime,
-		}
+			endTimePrompt := promptui.Prompt{
+				Label:    "End time (e.g., 5:00 PM or 17:00)",
+				Validate: validateTime,
+			}
 
-		endTimeStr, err := endTimePrompt.Run()
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			endTimeStr, err := endTimePrompt.Run()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		if err := validateEndDateTime(startDateInput, startTimeStr, endDateInput, endTimeStr); err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			if err := validateEndDateTime(startDateInput, startTimeStr, endDateInput, endTimeStr); err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		descriptionPrompt := promptui.Prompt{
-			Label: "Description (optional, press Enter to skip)",
-		}
+			descriptionPrompt := promptui.Prompt{
+				Label: "Description (optional, press Enter to skip)",
+			}
 
-		description, err := descriptionPrompt.Run()
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			description, err := descriptionPrompt.Run()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		startTime, err := parseDateTime(startDateInput, startTimeStr)
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing start time: %v", err))
-			os.Exit(1)
-		}
+			startTime, err := parseDateTime(startDateInput, startTimeStr)
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing start time: %v", err))
+				os.Exit(1)
+			}
 
-		endTime, err := parseDateTime(endDateInput, endTimeStr)
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing end time: %v", err))
-			os.Exit(1)
-		}
+			endTime, err := parseDateTime(endDateInput, endTimeStr)
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing end time: %v", err))
+				os.Exit(1)
+			}
 
-		var hourlyRate *float64
-		if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil && cfg.HourlyRate > 0 {
-			hourlyRate = &cfg.HourlyRate
-		}
+			var hourlyRate *float64
+			if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil && cfg.HourlyRate > 0 {
+				hourlyRate = &cfg.HourlyRate
+			}
 
-		db, err := storage.Initialize()
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
-		defer db.Close()
+			db, err := storage.Initialize()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
+			defer db.Close()
 
-		entry, err := db.CreateManualEntry(projectName, description, startTime, endTime, hourlyRate)
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			entry, err := db.CreateManualEntry(projectName, description, startTime, endTime, hourlyRate)
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
 
-		duration := entry.Duration()
-		fmt.Println()
-		ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created manual entry for %s", ui.Bold(entry.ProjectName)))
-		ui.PrintInfo(4, ui.Bold("Start"), startTime.Format("Jan 2, 2006 at 3:04 PM"))
-		ui.PrintInfo(4, ui.Bold("End"), endTime.Format("Jan 2, 2006 at 3:04 PM"))
-		ui.PrintInfo(4, ui.Bold("Duration"), ui.FormatDuration(duration))
+			duration := entry.Duration()
+			fmt.Println()
+			ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created manual entry for %s", ui.Bold(entry.ProjectName)))
+			ui.PrintInfo(4, ui.Bold("Start"), startTime.Format("Jan 2, 2006 at 3:04 PM"))
+			ui.PrintInfo(4, ui.Bold("End"), endTime.Format("Jan 2, 2006 at 3:04 PM"))
+			ui.PrintInfo(4, ui.Bold("Duration"), ui.FormatDuration(duration))
 
-		if entry.Description != "" {
-			ui.PrintInfo(4, ui.Bold("Description"), entry.Description)
-		}
+			if entry.Description != "" {
+				ui.PrintInfo(4, ui.Bold("Description"), entry.Description)
+			}
 
-		if entry.HourlyRate != nil {
-			earnings := duration.Hours() * *entry.HourlyRate
-			fmt.Printf("    %s %s\n", ui.BoldInfo("Hourly Rate:"), fmt.Sprintf("$%.2f", *entry.HourlyRate))
-			fmt.Printf("    %s %s\n", ui.BoldInfo("Earnings:"), fmt.Sprintf("$%.2f", earnings))
-		}
+			if entry.HourlyRate != nil {
+				earnings := duration.Hours() * *entry.HourlyRate
+				fmt.Printf("    %s %s\n", ui.BoldInfo("Hourly Rate:"), fmt.Sprintf("$%.2f", *entry.HourlyRate))
+				fmt.Printf("    %s %s\n", ui.BoldInfo("Earnings:"), fmt.Sprintf("$%.2f", earnings))
+			}
 
-		ui.NewlineBelow()
-	},
+			ui.NewlineBelow()
+		},
+	}
+
+	return cmd
 }
 
 // validateDate validates that the provided input is a non-empty date string in MM-DD-YYYY format.
@@ -284,8 +288,4 @@ func detectProjectNameWithSource() (string) {
 	}
 
 	return projectName
-}
-
-func init() {
-	rootCmd.AddCommand(manualCmd)
 }
