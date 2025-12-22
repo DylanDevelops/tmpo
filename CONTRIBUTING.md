@@ -37,6 +37,28 @@ go build -o tmpo .
 ./tmpo --help
 ```
 
+### Building with Version Information
+
+To build with version information injected (useful for testing version display):
+
+```bash
+go build -ldflags "-X github.com/DylanDevelops/tmpo/cmd/utilities.Version=0.1.0 \
+  -X github.com/DylanDevelops/tmpo/cmd/utilities.Commit=$(git rev-parse --short HEAD) \
+  -X github.com/DylanDevelops/tmpo/cmd/utilities.Date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  -o tmpo .
+```
+
+> [!NOTE]
+> This is an example - you can modify the version number (e.g., `0.1.0`) or any other injected values to suit your testing needs.
+
+This is useful when you want to:
+
+- Test version display locally (`./tmpo --version`)
+- Build a binary with specific version info
+- Verify version injection is working correctly
+
+For production releases, goreleaser handles version injection automatically.
+
 ### Testing
 
 ```bash
