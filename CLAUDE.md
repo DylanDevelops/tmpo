@@ -40,8 +40,9 @@ goreleaser build --snapshot --clean
 
 **CLI Layer** (`cmd/`):
 - Uses Cobra for command structure
-- Each command is a separate file (start.go, stop.go, status.go, etc.)
-- All commands registered in `cmd/root.go` via `init()` functions
+- Commands organized in subdirectories: tracking/, entries/, history/, setup/, utilities/
+- Each command is a constructor function that returns `*cobra.Command`
+- All commands explicitly registered in `cmd/root.go` RootCmd() function
 - Version information is injected via ldflags during build
 
 **Storage Layer** (`internal/storage/`):
@@ -83,7 +84,7 @@ defer db.Close()
 ```
 
 **Project Name Detection:**
-The `cmd/start.go:DetectProjectName()` function implements the priority: .tmporc config → Git repository → directory name
+The `internal/project.DetectConfiguredProject()` function implements the priority: .tmporc config → Git repository → directory name
 
 **Time Entry States:**
 - Running: EndTime is nil
@@ -107,13 +108,13 @@ Uses `modernc.org/sqlite` (pure Go, no CGO) instead of mattn/go-sqlite3. This is
 **Version Injection:**
 Version, Commit, and Date are injected at build time via ldflags:
 ```
--X github.com/DylanDevelops/tmpo/cmd.Version={{.Version}}
--X github.com/DylanDevelops/tmpo/cmd.Commit={{.Commit}}
--X github.com/DylanDevelops/tmpo/cmd.Date={{.Date}}
+-X github.com/DylanDevelops/tmpo/cmd/utilities.Version={{.Version}}
+-X github.com/DylanDevelops/tmpo/cmd/utilities.Commit={{.Commit}}
+-X github.com/DylanDevelops/tmpo/cmd/utilities.Date={{.Date}}
 ```
 
 **Command Registration:**
-New commands must be added via `rootCmd.AddCommand()` in their `init()` function.
+New commands should be created as constructor functions (e.g., `StartCmd()`, `StopCmd()`) that return `*cobra.Command`. Each command registers its own flags before returning. Commands are then registered in `cmd/root.go` RootCmd() by calling `cmd.AddCommand(tracking.StartCmd())`.
 
 **Interactive Prompts:**
 The `manual` command uses `github.com/manifoldco/promptui` for interactive prompts (date/time input).
