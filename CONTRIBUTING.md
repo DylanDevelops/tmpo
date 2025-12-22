@@ -59,15 +59,18 @@ goreleaser build --snapshot --clean
 ```
 tmpo/
 ├── cmd/                 # CLI commands (Using Cobra)
-│   ├── command1.go
-│   ├── command2.go
-│   ├── command3.go
-│   ├── ...
+│   ├── root.go         # Root command with RootCmd() constructor
+│   ├── tracking/       # Time tracking commands (start, stop, pause, resume, status)
+│   ├── entries/        # Entry management (edit, delete, manual)
+│   ├── history/        # History commands (log, stats, export)
+│   ├── setup/          # Setup commands (init)
+│   └── utilities/      # Utility commands (version)
 ├── internal/
 │   ├── config/         # Configuration management (.tmporc files)
 │   ├── storage/        # SQLite database layer
 │   ├── project/        # Project detection logic
-│   └── export/         # Export functionality
+│   ├── export/         # Export functionality
+│   └── ui/             # UI helpers (formatting, colors, printing)
 ├── docs/               # User documentation
 │   ├── usage.md
 │   └── configuration.md
@@ -78,10 +81,16 @@ tmpo/
 ### Key Directories
 
 - **`cmd/`**: Contains all CLI command implementations using Cobra
+  - **`cmd/tracking/`**: Time tracking commands (start, stop, pause, resume, status)
+  - **`cmd/entries/`**: Entry management commands (edit, delete, manual)
+  - **`cmd/history/`**: History and reporting commands (log, stats, export)
+  - **`cmd/setup/`**: Setup and initialization commands (init)
+  - **`cmd/utilities/`**: Utility commands and version information (version)
 - **`internal/config/`**: Handles `.tmporc` file parsing and configuration
 - **`internal/storage/`**: SQLite database operations and models
 - **`internal/project/`**: Project name detection logic (git/directory/config)
-- **`internal/export/`**: Export functionality used by commands
+- **`internal/export/`**: Export functionality (CSV, JSON)
+- **`internal/ui/`**: UI helpers for formatting, colors, and terminal output
 - **`docs/`**: User-facing documentation and guides
 
 ### Data Storage
@@ -107,7 +116,7 @@ When a user runs `tmpo start`, the project name is detected in this priority ord
 2. **Git repository** - Uses `git rev-parse --show-toplevel` to find repo root
 3. **Directory name** - Falls back to current directory name
 
-This logic lives in `internal/project/detector.go`.
+This logic lives in `internal/project/detect.go`.
 
 ## Making Changes
 

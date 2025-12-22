@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/DylanDevelops/tmpo/internal/config"
 )
 
 // DetectProject attempts to determine the project name using a prioritized strategy:
@@ -39,6 +41,23 @@ func DetectProject() (string, error) {
 	}
 
 	return filepath.Base(cwd), nil
+}
+
+
+// DetectConfiguredProject returns the project name specified in the repository
+// configuration, if present, otherwise it falls back to auto-detection.
+// It loads configuration via config.FindAndLoad(); if a non-empty cfg.ProjectName
+// is found that value is returned with a nil error. If no configured project
+// name exists or loading fails, DetectProject() is invoked and its result is
+// returned (project name, error).
+func DetectConfiguredProject() (string, error) {
+	if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil {
+		if cfg.ProjectName != "" {
+			return cfg.ProjectName, nil
+		}
+	}
+
+	return DetectProject()
 }
 
 // FindTmporc searches the current working directory and each parent directory

@@ -1,4 +1,4 @@
-package cmd
+package tracking
 
 import (
 	"os"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +31,7 @@ func TestDetectProjectName(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test
-		projectName, err := DetectProjectName()
+		projectName, err := project.DetectConfiguredProject()
 		assert.NoError(t, err)
 		assert.Equal(t, "test-project-from-config", projectName)
 	})
@@ -50,7 +51,7 @@ func TestDetectProjectName(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test - should use directory name as fallback since it's not a real git repo
-		projectName, err := DetectProjectName()
+		projectName, err := project.DetectConfiguredProject()
 		assert.NoError(t, err)
 		assert.NotEmpty(t, projectName)
 	})
@@ -66,7 +67,7 @@ func TestDetectProjectName(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test
-		projectName, err := DetectProjectName()
+		projectName, err := project.DetectConfiguredProject()
 		assert.NoError(t, err)
 		// Should use the directory name
 		assert.NotEmpty(t, projectName)
@@ -92,7 +93,7 @@ func TestDetectProjectName(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test
-		projectName, err := DetectProjectName()
+		projectName, err := project.DetectConfiguredProject()
 		assert.NoError(t, err)
 		assert.NotEmpty(t, projectName)
 	})

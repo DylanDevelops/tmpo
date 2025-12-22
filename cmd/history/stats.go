@@ -1,4 +1,4 @@
-package cmd
+package history
 
 import (
 	"fmt"
@@ -16,57 +16,64 @@ var (
 	statsWeek bool
 )
 
-var statsCmd = &cobra.Command{
-	Use:   "stats",
-	Short: "Show time tracking statistics",
-	Long:  `Display statistics and summaries of your time tracking data.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		ui.NewlineAbove()
+func StatsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "stats",
+		Short: "Show time tracking statistics",
+		Long:  `Display statistics and summaries of your time tracking data.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			ui.NewlineAbove()
 
-		db, err := storage.Initialize()
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
-
-		defer db.Close()
-
-		var start, end time.Time
-		var periodName string
-
-		if statsToday {
-			start = time.Now().Truncate(24 * time.Hour)
-			end = start.Add(24 * time.Hour)
-			periodName = "Today"
-		} else if statsWeek {
-			now := time.Now()
-			weekday := int(now.Weekday())
-			if weekday == 0 {
-				weekday = 7
-			}
-
-			start = now.AddDate(0, 0, -weekday+1).Truncate(24 * time.Hour)
-			end = start.AddDate(0, 0, 7)
-			periodName = "This Week"
-		} else {
-			entries, err := db.GetEntries(0)
+			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)
 			}
 
-			ShowAllTimeStats(entries, db)
-			return
-		}
+			defer db.Close()
 
-		entries, err := db.GetEntriesByDateRange(start, end)
-		if err != nil {
-			ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-			os.Exit(1)
-		}
+			var start, end time.Time
+			var periodName string
 
-		ShowPeriodStats(entries, periodName)
-	},
+			if statsToday {
+				start = time.Now().Truncate(24 * time.Hour)
+				end = start.Add(24 * time.Hour)
+				periodName = "Today"
+			} else if statsWeek {
+				now := time.Now()
+				weekday := int(now.Weekday())
+				if weekday == 0 {
+					weekday = 7
+				}
+
+				start = now.AddDate(0, 0, -weekday+1).Truncate(24 * time.Hour)
+				end = start.AddDate(0, 0, 7)
+				periodName = "This Week"
+			} else {
+				entries, err := db.GetEntries(0)
+				if err != nil {
+					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+					os.Exit(1)
+				}
+
+				ShowAllTimeStats(entries, db)
+				return
+			}
+
+			entries, err := db.GetEntriesByDateRange(start, end)
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				os.Exit(1)
+			}
+
+			ShowPeriodStats(entries, periodName)
+		},
+	}
+
+	cmd.Flags().BoolVarP(&statsToday, "today", "t", false, "Show today's stats")
+	cmd.Flags().BoolVarP(&statsWeek, "week", "w", false, "Show this week's stats")
+
+	return cmd
 }
 
 // ShowPeriodStats prints aggregated statistics for a named period to standard
@@ -216,11 +223,4 @@ func ShowAllTimeStats(entries []*storage.TimeEntry, db *storage.Database) {
 	}
 
 	ui.NewlineBelow()
-}
-
-func init() {
-	rootCmd.AddCommand(statsCmd)
-
-	statsCmd.Flags().BoolVarP(&statsToday, "today", "t", false, "Show today's stats")
-	statsCmd.Flags().BoolVarP(&statsWeek, "week", "w", false, "Show this week's stats")
 }

@@ -12,9 +12,9 @@ builds:
     binary: tmpo
     ldflags:
       - -s -w
-      - -X github.com/DylanDevelops/tmpo/cmd.Version={{.Version}}
-      - -X github.com/DylanDevelops/tmpo/cmd.Commit={{.Commit}}
-      - -X github.com/DylanDevelops/tmpo/cmd.Date={{.Date}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Version={{.Version}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Commit={{.Commit}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Date={{.Date}}
 
   # Linux
   - id: linux
@@ -25,9 +25,9 @@ builds:
     binary: tmpo
     ldflags:
       - -s -w
-      - -X github.com/DylanDevelops/tmpo/cmd.Version={{.Version}}
-      - -X github.com/DylanDevelops/tmpo/cmd.Commit={{.Commit}}
-      - -X github.com/DylanDevelops/tmpo/cmd.Date={{.Date}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Version={{.Version}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Commit={{.Commit}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Date={{.Date}}
 
   # Windows
   - id: windows
@@ -38,9 +38,9 @@ builds:
     binary: tmpo
     ldflags:
       - -s -w
-      - -X github.com/DylanDevelops/tmpo/cmd.Version={{.Version}}
-      - -X github.com/DylanDevelops/tmpo/cmd.Commit={{.Commit}}
-      - -X github.com/DylanDevelops/tmpo/cmd.Date={{.Date}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Version={{.Version}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Commit={{.Commit}}
+      - -X github.com/DylanDevelops/tmpo/cmd/utilities.Date={{.Date}}
 
 archives:
   - id: windows-zip
