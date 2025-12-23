@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/storage"
@@ -258,14 +259,20 @@ func EditCmd() *cobra.Command {
 
 			hasChanges := false
 
-			if !selectedEntry.StartTime.Equal(editedEntry.StartTime) {
+			selectedStartTrunc := selectedEntry.StartTime.Truncate(time.Minute)
+			editedStartTrunc := editedEntry.StartTime.Truncate(time.Minute)
+
+			if !selectedStartTrunc.Equal(editedStartTrunc) {
 				hasChanges = true
 				oldStr := selectedEntry.StartTime.Format("01-02-2006 3:04 PM")
 				newStr := editedEntry.StartTime.Format("01-02-2006 3:04 PM")
 				fmt.Printf("    %s %s → %s\n", ui.Bold("Start time:"), ui.Muted(oldStr), newStr)
 			}
 
-			if !selectedEntry.EndTime.Equal(*editedEntry.EndTime) {
+			selectedEndTrunc := selectedEntry.EndTime.Truncate(time.Minute)
+			editedEndTrunc := editedEntry.EndTime.Truncate(time.Minute)
+
+			if !selectedEndTrunc.Equal(editedEndTrunc) {
 				hasChanges = true
 				oldStr := selectedEntry.EndTime.Format("01-02-2006 3:04 PM")
 				newStr := editedEntry.EndTime.Format("01-02-2006 3:04 PM")
