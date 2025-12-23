@@ -111,7 +111,10 @@ func ShowPeriodStats(entries []*storage.TimeEntry, periodName string) {
 		totalDuration += duration
 
 		if entry.HourlyRate != nil {
-			earnings := duration.Hours() * *entry.HourlyRate
+			// Use rounded duration (to nearest minute) for earnings calculation
+			// to align with typical invoicing practices
+			roundedDuration := entry.RoundedDuration()
+			earnings := roundedDuration.Hours() * *entry.HourlyRate
 			projectEarnings[entry.ProjectName] += earnings
 			totalEarnings += earnings
 			hasAnyEarnings = true
@@ -184,7 +187,10 @@ func ShowAllTimeStats(entries []*storage.TimeEntry, db *storage.Database) {
 		totalDuration += duration
 
 		if entry.HourlyRate != nil {
-			earnings := duration.Hours() * *entry.HourlyRate
+			// Use rounded duration (to nearest minute) for earnings calculation
+			// to align with typical invoicing practices
+			roundedDuration := entry.RoundedDuration()
+			earnings := roundedDuration.Hours() * *entry.HourlyRate
 			projectEarnings[entry.ProjectName] += earnings
 			totalEarnings += earnings
 			hasAnyEarnings = true

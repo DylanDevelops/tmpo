@@ -32,3 +32,12 @@ func (t *TimeEntry) Duration() time.Duration {
 func (t *TimeEntry) IsRunning() bool {
 	return t.EndTime == nil
 }
+
+// RoundedDuration returns the duration rounded to the nearest minute.
+// This is useful for financial calculations where invoicing is typically done
+// in minute increments rather than to the second or millisecond.
+func (t *TimeEntry) RoundedDuration() time.Duration {
+	duration := t.Duration()
+	minutes := duration.Round(time.Minute)
+	return minutes
+}

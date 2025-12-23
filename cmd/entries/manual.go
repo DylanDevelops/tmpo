@@ -167,7 +167,10 @@ func ManualCmd() *cobra.Command {
 			}
 
 			if entry.HourlyRate != nil {
-				earnings := duration.Hours() * *entry.HourlyRate
+				// Use rounded duration (to nearest minute) for earnings calculation
+				// to align with typical invoicing practices
+				roundedDuration := entry.RoundedDuration()
+				earnings := roundedDuration.Hours() * *entry.HourlyRate
 				fmt.Printf("    %s %s\n", ui.BoldInfo("Hourly Rate:"), fmt.Sprintf("$%.2f", *entry.HourlyRate))
 				fmt.Printf("    %s %s\n", ui.BoldInfo("Earnings:"), fmt.Sprintf("$%.2f", earnings))
 			}
