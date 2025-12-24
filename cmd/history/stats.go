@@ -36,7 +36,8 @@ func StatsCmd() *cobra.Command {
 			var periodName string
 
 			if statsToday {
-				start = time.Now().Truncate(24 * time.Hour)
+				now := time.Now()
+				start = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 				end = start.Add(24 * time.Hour)
 				periodName = "Today"
 			} else if statsWeek {
@@ -46,7 +47,7 @@ func StatsCmd() *cobra.Command {
 					weekday = 7
 				}
 
-				start = now.AddDate(0, 0, -weekday+1).Truncate(24 * time.Hour)
+				start = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -weekday+1)
 				end = start.AddDate(0, 0, 7)
 				periodName = "This Week"
 			} else {
