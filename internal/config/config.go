@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/DylanDevelops/tmpo/internal/currency"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -14,12 +15,14 @@ import (
 // ProjectName is the human-readable name of the project.
 // HourlyRate is the billable hourly rate for the project; when zero it will be omitted from YAML.
 // Description is an optional free-form description of the project; when empty it will be omitted from YAML.
+// Currency is the ISO 4217 currency code (e.g., USD, EUR, GBP) for billing display; when empty it will be omitted from YAML.
 //
 // ! IMPORTANT When adding new fields to this struct, also update configTemplate below. !
 type Config struct {
 	ProjectName string `yaml:"project_name"`
 	HourlyRate float64 `yaml:"hourly_rate,omitempty"`
 	Description string `yaml:"description,omitempty"`
+	Currency    string `yaml:"currency,omitempty"`
 }
 
 // configTemplate is the template used when creating new .tmporc files via CreateWithTemplate.
@@ -29,6 +32,7 @@ type Config struct {
 //   %s - project name (string)
 //   %.2f - hourly rate (float64, 2 decimal places)
 //   %s - description (string)
+//   %s - currency code (string)
 //
 // ! IMPORTANT: When adding new fields to the Config struct above, update this template. !
 const configTemplate = `# tmpo project configuration
@@ -42,6 +46,9 @@ hourly_rate: %.2f
 
 # [OPTIONAL] Description for this project
 description: "%s"
+
+# [OPTIONAL] Currency code for billing display (USD, EUR, GBP, JPY, etc.)
+currency: %s
 `
 
 // Load reads a YAML configuration file from the provided path and unmarshals it into a Config.
@@ -99,13 +106,13 @@ func Create(projectName string, hourlyRate float64) error {
 // CreateWithTemplate creates a new .tmporc file with a user-friendly format that includes
 // all fields (even if empty) and helpful comments. This provides a better user experience
 // by showing all available configuration options.
-func CreateWithTemplate(projectName string, hourlyRate float64, description string) error {
+func CreateWithTemplate(projectName string, hourlyRate float64, description string, currency string) error {
 	tmporc := filepath.Join(".", ".tmporc")
 	if _, err := os.Stat(tmporc); err == nil {
 		return fmt.Errorf(".tmporc already exists")
 	}
 
-	content := fmt.Sprintf(configTemplate, projectName, hourlyRate, description)
+	content := fmt.Sprintf(configTemplate, projectName, hourlyRate, description, currency)
 
 	if err := os.WriteFile(tmporc, []byte(content), 0644); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
@@ -147,4 +154,13 @@ func FindAndLoad() (*Config, string, error) {
 	}
 
 	return nil, "", fmt.Errorf(".tmporc not found")
+}
+
+// GetCurrencyOrDefault returns the configured currency code, or "USD" if not set.
+// This provides a convenient way to get the currency with a sensible default.
+func (c *Config) GetCurrencyOrDefault() string {
+	if c.Currency == "" {
+		return currency.DefaultCurrency
+	}
+	return c.Currency
 }

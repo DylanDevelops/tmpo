@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/currency"
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/manifoldco/promptui"
@@ -37,12 +38,14 @@ func InitCmd() *cobra.Command {
 			var name string
 			var hourlyRate float64
 			var description string
+			var currencyCode string
 
 			if acceptDefaults {
 				// Use all defaults without prompting
 				name = defaultName
 				hourlyRate = 0
 				description = ""
+				currencyCode = "USD"
 			} else {
 				// Interactive form
 				ui.PrintSuccess(ui.EmojiInit, "Initialize Project Configuration")
@@ -98,10 +101,27 @@ func InitCmd() *cobra.Command {
 				}
 
 				description = strings.TrimSpace(descInput)
+
+				// Currency prompt
+				currencyPrompt := promptui.Prompt{
+					Label:    "Currency code (press Enter for USD)",
+					Validate: validateCurrency,
+				}
+
+				currencyInput, err := currencyPrompt.Run()
+				if err != nil {
+					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+					os.Exit(1)
+				}
+
+				currencyCode = strings.ToUpper(strings.TrimSpace(currencyInput))
+				if currencyCode == "" {
+					currencyCode = "USD"
+				}
 			}
 
 			// Create the .tmporc file
-			err := config.CreateWithTemplate(name, hourlyRate, description)
+			err := config.CreateWithTemplate(name, hourlyRate, description, currencyCode)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)
@@ -110,10 +130,13 @@ func InitCmd() *cobra.Command {
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created .tmporc for project %s", ui.Bold(name)))
 			if hourlyRate > 0 {
-				ui.PrintInfo(4, ui.Bold("Hourly Rate"), fmt.Sprintf("$%.2f", hourlyRate))
+				ui.PrintInfo(4, ui.Bold("Hourly Rate"), currency.FormatCurrency(hourlyRate, currencyCode))
 			}
 			if description != "" {
 				ui.PrintInfo(4, ui.Bold("Description"), description)
+			}
+			if currencyCode != "" && currencyCode != "USD" {
+				ui.PrintInfo(4, ui.Bold("Currency"), currencyCode)
 			}
 
 			fmt.Println()
@@ -164,6 +187,28 @@ func validateHourlyRate(input string) error {
 
 	if rate < 0 {
 		return fmt.Errorf("hourly rate cannot be negative")
+	}
+
+	return nil
+}
+
+// validateCurrency validates that the input is empty or a valid currency code format
+func validateCurrency(input string) error {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return nil // Allow empty for default
+	}
+
+	// Currency codes should be 3 letters
+	if len(input) != 3 {
+		return fmt.Errorf("currency code must be 3 letters (e.g., USD, EUR, GBP)")
+	}
+
+	// Check that it's all letters
+	for _, char := range input {
+		if (char < 'a' || char > 'z') && (char < 'A' || char > 'Z') {
+			return fmt.Errorf("currency code must contain only letters")
+		}
 	}
 
 	return nil

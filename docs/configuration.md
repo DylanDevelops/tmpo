@@ -30,6 +30,7 @@ tmpo init
 # - Project name (defaults to auto-detected name)
 # - Hourly rate (optional, press Enter to skip)
 # - Description (optional, press Enter to skip)
+# - Currency code (optional, defaults to USD)
 ```
 
 For quick setup without prompts, use the `--accept-defaults` flag:
@@ -57,6 +58,9 @@ hourly_rate: 125.50
 
 # [OPTIONAL] Description for this project
 description: Client project for Acme Corp
+
+# [OPTIONAL] Currency code for billing display (USD, EUR, GBP, JPY, etc.)
+currency: USD
 ```
 
 ### Configuration Fields
@@ -73,12 +77,13 @@ project_name: Client Website Redesign
 
 #### `hourly_rate` (optional)
 
-Your billing rate in dollars per hour. When set, tmpo will calculate estimated earnings based on tracked time.
+Your billing rate per hour. When set, tmpo will calculate estimated earnings based on tracked time. The currency symbol displayed is determined by the `currency` field (defaults to USD if not specified).
 
 **Example:**
 
 ```yaml
 hourly_rate: 150.00
+currency: USD  # Will display as $150.00
 ```
 
 Set to `0` or omit to disable rate tracking:
@@ -96,6 +101,47 @@ A longer description or notes about the project. This is for your reference and 
 ```yaml
 description: Q1 2024 website redesign for Acme Corp. Main contact: john@acme.com
 ```
+
+#### `currency` (optional)
+
+The ISO 4217 currency code for displaying billing rates and earnings. This determines the currency symbol shown in stats, reports, and summaries.
+
+**Supported Currencies:**
+
+tmpo supports 30+ currencies including:
+
+- **Americas:** USD ($), CAD (CA$), BRL (R$), MXN (MX$)
+- **Europe:** EUR (€), GBP (£), CHF (Fr), SEK (kr), NOK (kr)
+- **Asia:** JPY (¥), CNY (¥), INR (₹), KRW (₩), SGD (S$)
+- **Oceania:** AUD (A$), NZD (NZ$)
+
+And many more. See the [full currency code list](https://en.wikipedia.org/wiki/ISO_4217#Active_codes).
+
+**Examples:**
+
+```yaml
+# US-based project
+hourly_rate: 150
+currency: USD
+# Displays as: $150.00
+
+# European project
+hourly_rate: 120
+currency: EUR
+# Displays as: €120.00
+
+# UK project
+hourly_rate: 100
+currency: GBP
+# Displays as: £100.00
+
+# Japanese project
+hourly_rate: 15000
+currency: JPY
+# Displays as: ¥15000.00
+```
+
+If not specified or if an unknown currency code is provided, `currency` defaults to USD. Currency codes are case-insensitive (USD, usd, or Usd all work).
 
 ## Project Detection Priority
 
@@ -150,13 +196,15 @@ tmpo init
 # Project name: Client A - Web Development
 # Hourly rate: 150
 # Description: [press Enter to skip]
+# Currency code: USD
 
-# Client B - $175/hour
+# Client B - £175/hour
 cd ~/projects/client-b
 tmpo init
 # Project name: Client B - Game Development
 # Hourly rate: 175
 # Description: [press Enter to skip]
+# Currency code: GBP
 
 # Personal project - no billing
 cd ~/projects/my-app
@@ -166,9 +214,11 @@ tmpo init --accept-defaults  # Quick setup with defaults
 Alternatively, you can manually create `.tmporc` files:
 
 ```bash
-cat > ~/projects/client-a/.tmporc << EOF
-project_name: Client A - Web Development
+# Client configuration
+cat > ~/projects/client-project/.tmporc << EOF
+project_name: Client Project - Web Development
 hourly_rate: 150.00
+currency: USD
 EOF
 ```
 

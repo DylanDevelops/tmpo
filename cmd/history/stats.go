@@ -6,6 +6,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/currency"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
@@ -119,13 +121,15 @@ func ShowPeriodStats(entries []*storage.TimeEntry, periodName string) {
 		}
 	}
 
+	currencyCode := getCurrencyCode()
+
 	ui.PrintSuccess(ui.EmojiStats, fmt.Sprintf("Stats for %s", ui.Bold(periodName)))
 	fmt.Println()
 	ui.PrintInfo(4, ui.Bold("Total Time"), fmt.Sprintf("%s (%.2f hours)", ui.FormatDuration(totalDuration), totalDuration.Hours()))
 	ui.PrintInfo(4, ui.Bold("Total Entries"), fmt.Sprintf("%d", len(entries)))
 
 	if hasAnyEarnings {
-		ui.PrintInfo(4, ui.Bold("Earnings"), fmt.Sprintf("$%.2f", totalEarnings))
+		ui.PrintInfo(4, ui.Bold("Earnings"), currency.FormatCurrency(totalEarnings, currencyCode))
 	}
 
 	fmt.Println()
@@ -144,7 +148,7 @@ func ShowPeriodStats(entries []*storage.TimeEntry, periodName string) {
 		fmt.Printf("        %s  %s  (%.1f%%)\n", ui.Bold(fmt.Sprintf("%-20s", project)), ui.FormatDuration(duration), percentage)
 
 		if earnings, ok := projectEarnings[project]; ok && earnings > 0 {
-			fmt.Printf("        %s %s\n", ui.Muted("└─ Earnings:"), fmt.Sprintf("$%.2f", earnings))
+			fmt.Printf("        %s %s\n", ui.Muted("└─ Earnings:"), currency.FormatCurrency(earnings, currencyCode))
 		}
 	}
 
@@ -193,6 +197,7 @@ func ShowAllTimeStats(entries []*storage.TimeEntry, db *storage.Database) {
 	}
 
 	allProjects, _ := db.GetAllProjects()
+	currencyCode := getCurrencyCode()
 
 	ui.PrintSuccess(ui.EmojiStats, ui.Bold("All-Time Statistics"))
 	ui.PrintInfo(4, ui.Bold("Total Time"), fmt.Sprintf("%s (%.2f hours)", ui.FormatDuration(totalDuration), totalDuration.Hours()))
@@ -200,7 +205,7 @@ func ShowAllTimeStats(entries []*storage.TimeEntry, db *storage.Database) {
 	ui.PrintInfo(4, ui.Bold("Projects Tracked"), fmt.Sprintf("%d", len(allProjects)))
 
 	if hasAnyEarnings {
-		ui.PrintInfo(4, ui.Bold("Earnings"), fmt.Sprintf("$%.2f", totalEarnings))
+		ui.PrintInfo(4, ui.Bold("Earnings"), currency.FormatCurrency(totalEarnings, currencyCode))
 	}
 
 	fmt.Println()
@@ -219,9 +224,20 @@ func ShowAllTimeStats(entries []*storage.TimeEntry, db *storage.Database) {
 		fmt.Printf("        %s  %s  (%.1f%%)\n", ui.Bold(fmt.Sprintf("%-20s", project)), ui.FormatDuration(duration), percentage)
 
 		if earnings, ok := projectEarnings[project]; ok && earnings > 0 {
-			fmt.Printf("        %s %s\n", ui.Muted("└─ Earnings:"), fmt.Sprintf("$%.2f", earnings))
+			fmt.Printf("        %s %s\n", ui.Muted("└─ Earnings:"), currency.FormatCurrency(earnings, currencyCode))
 		}
 	}
 
 	ui.NewlineBelow()
+}
+
+// getCurrencyCode attempts to load the currency code from the current project's
+// .tmporc configuration file. If no config is found or currency is not set,
+// it returns "USD" as the default.
+func getCurrencyCode() string {
+	cfg, _, err := config.FindAndLoad()
+	if err != nil {
+		return "USD"
+	}
+	return cfg.GetCurrencyOrDefault()
 }

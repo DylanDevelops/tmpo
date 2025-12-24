@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/currency"
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
@@ -167,9 +168,15 @@ func ManualCmd() *cobra.Command {
 			}
 
 			if entry.HourlyRate != nil {
+				// Get currency from config, fallback to USD
+				currencyCode := "USD"
+				if cfg, _, err := config.FindAndLoad(); err == nil {
+					currencyCode = cfg.GetCurrencyOrDefault()
+				}
+
 				earnings := entry.RoundedHours() * *entry.HourlyRate
-				fmt.Printf("    %s %s\n", ui.BoldInfo("Hourly Rate:"), fmt.Sprintf("$%.2f", *entry.HourlyRate))
-				fmt.Printf("    %s %s\n", ui.BoldInfo("Earnings:"), fmt.Sprintf("$%.2f", earnings))
+				fmt.Printf("    %s %s\n", ui.BoldInfo("Hourly Rate:"), currency.FormatCurrency(*entry.HourlyRate, currencyCode))
+				fmt.Printf("    %s %s\n", ui.BoldInfo("Earnings:"), currency.FormatCurrency(earnings, currencyCode))
 			}
 
 			ui.NewlineBelow()
