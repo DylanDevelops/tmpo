@@ -24,11 +24,14 @@ type Database struct {
 
 // Initialize ensures the on-disk storage for the application exists, opens the
 // SQLite database, and returns a Database wrapper.
-// 
+//
 // Specifically, Initialize:
 //   - determines the current user's home directory,
-//   - creates the directory "$HOME/.tmpo" if it does not already exist,
-//   - opens (or creates) the SQLite database file "$HOME/.tmpo/tmpo.db",
+//   - checks the TMPO_DEV environment variable:
+//     - if TMPO_DEV is "1" or "true", uses "$HOME/.tmpo-dev" (development mode),
+//     - otherwise uses "$HOME/.tmpo" (production mode, the default),
+//   - creates the appropriate directory if it does not already exist,
+//   - opens (or creates) the SQLite database file "tmpo.db" in that directory,
 //   - ensures the time_entries table exists with the schema:
 //       id INTEGER PRIMARY KEY AUTOINCREMENT,
 //       project_name TEXT NOT NULL,
@@ -42,12 +45,17 @@ type Database struct {
 // responsible for closing the database when finished.
 func Initialize() (*Database, error) {
 	homeDir, err := os.UserHomeDir()
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get home directory: %w", err)
 	}
 
+	// Switch out directory depending on build environment
 	tmpoDir := filepath.Join(homeDir, ".tmpo")
+	if devMode := os.Getenv("TMPO_DEV"); devMode == "1" || devMode == "true" {
+		tmpoDir = filepath.Join(homeDir, ".tmpo-dev")
+	}
+
 	if err := os.MkdirAll(tmpoDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create .tmpo directory: %w", err)
 	}

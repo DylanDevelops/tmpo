@@ -37,6 +37,48 @@ go build -o tmpo .
 ./tmpo --help
 ```
 
+### Development Mode
+
+To prevent corrupting your real tmpo data during development, use the `TMPO_DEV` environment variable:
+
+```bash
+# Enable development mode (uses ~/.tmpo-dev/ instead of ~/.tmpo/)
+export TMPO_DEV=1
+
+# Now all commands use the development database
+./tmpo start "Testing new feature"
+./tmpo status
+./tmpo stop
+```
+
+**Database Locations:**
+
+- **Production mode** (default): `~/.tmpo/tmpo.db`
+- **Development mode** (`TMPO_DEV=1`): `~/.tmpo-dev/tmpo.db`
+
+> [!NOTE]
+> The `export TMPO_DEV=1` command only applies to your **current terminal session**. When you close the terminal, it resets to production mode. This is intentional for safety - you must explicitly enable dev mode each time.
+
+**Making it persistent (optional):**
+
+If you prefer to always use dev mode, add it to your shell profile:
+
+```bash
+# For zsh (macOS default)
+echo 'export TMPO_DEV=1' >> ~/.zshrc
+
+# For bash
+echo 'export TMPO_DEV=1' >> ~/.bashrc
+```
+
+Then restart your terminal or run `source ~/.zshrc` (or `source ~/.bashrc`).
+
+**Benefits of development mode:**
+
+- Your real time tracking data stays safe
+- You can test database changes without risk
+- You can easily clean up test data (`rm -rf ~/.tmpo-dev/`)
+
 ### Building with Version Information
 
 To build with version information injected (useful for testing version display):
@@ -120,15 +162,21 @@ tmpo/
 All user data is stored locally in:
 
 ```
-~/.tmpo/
-  └── tmpo.db          # SQLite database
+~/.tmpo/              # Production (default)
+  └── tmpo.db
+
+~/.tmpo-dev/          # Development (when TMPO_DEV=1)
+  └── tmpo.db
 ```
 
 The database schema includes:
 
-- Time entries (start/end times, project, description)
+- Time entries (start/end times, project, description, hourly rate)
 - Project metadata (derived from entries)
 - Automatic indexing for fast queries
+
+> [!NOTE]
+> See [Development Mode](#development-mode) for information on using the development database during local development.
 
 ### How Project Detection Works
 
