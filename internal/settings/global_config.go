@@ -38,6 +38,7 @@ func DefaultGlobalConfig() *GlobalConfig {
 
 // GetGlobalConfigPath returns the absolute path to the global configuration file.
 // The config is stored at $HOME/.tmpo/config.yaml alongside the database.
+// If the TMPO_DEV environment variable is set to "1" or "true", uses $HOME/.tmpo-dev/config.yaml.
 // Returns an error if the home directory cannot be determined.
 func GetGlobalConfigPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -45,10 +46,17 @@ func GetGlobalConfigPath() (string, error) {
 		return "", fmt.Errorf("failed to get home directory: %w", err)
 	}
 
-	return filepath.Join(home, ".tmpo", "config.yaml"), nil
+	// Switch out directory depending on build environment
+	tmpoDir := filepath.Join(home, ".tmpo")
+	if devMode := os.Getenv("TMPO_DEV"); devMode == "1" || devMode == "true" {
+		tmpoDir = filepath.Join(home, ".tmpo-dev")
+	}
+
+	return filepath.Join(tmpoDir, "config.yaml"), nil
 }
 
-// LoadGlobalConfig loads the global configuration from ~/.tmpo/config.yaml.
+// LoadGlobalConfig loads the global configuration from ~/.tmpo/config.yaml
+// (or ~/.tmpo-dev/config.yaml if TMPO_DEV is set).
 // If the file doesn't exist, it returns a default configuration without error.
 // If the file exists but cannot be read or parsed, it returns an error.
 func LoadGlobalConfig() (*GlobalConfig, error) {
@@ -80,8 +88,9 @@ func LoadGlobalConfig() (*GlobalConfig, error) {
 	return &config, nil
 }
 
-// Save writes the GlobalConfig to ~/.tmpo/config.yaml.
-// It creates the ~/.tmpo directory if it doesn't exist.
+// Save writes the GlobalConfig to ~/.tmpo/config.yaml
+// (or ~/.tmpo-dev/config.yaml if TMPO_DEV is set).
+// It creates the directory if it doesn't exist.
 // Returns an error if the directory cannot be created or the file cannot be written.
 func (gc *GlobalConfig) Save() error {
 	configPath, err := GetGlobalConfigPath()

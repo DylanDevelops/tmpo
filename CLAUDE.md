@@ -49,8 +49,9 @@ goreleaser build --snapshot --clean
 - `db.go`: Database wrapper around `*sql.DB` with all query methods
 - `models.go`: TimeEntry struct with Duration() and IsRunning() helper methods
 - Uses modernc.org/sqlite (pure Go implementation)
-- Database location: `$HOME/.tmpo/tmpo.db`
+- Database location: `$HOME/.tmpo/tmpo.db` (or `$HOME/.tmpo-dev/tmpo.db` if TMPO_DEV is set to "1" or "true")
 - Schema: time_entries table with id, project_name, start_time, end_time, description, hourly_rate
+- Development mode uses separate directory to avoid conflicts with production data
 
 **Configuration** (`internal/settings/`):
 - **Per-Project Configuration**: YAML-based config using `.tmporc` files
@@ -64,9 +65,10 @@ goreleaser build --snapshot --clean
   - Date format is selectable (MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD)
   - Time format is selectable (24-hour, 12-hour (AM/PM))
   - Timezone uses IANA format with validation (e.g., America/New_York, UTC)
-  - Located at `$HOME/.tmpo/config.yaml`
+  - Located at `$HOME/.tmpo/config.yaml` (or `$HOME/.tmpo-dev/config.yaml` if TMPO_DEV is set to "1" or "true")
   - If missing, defaults are used (USD, empty formats, local timezone)
   - LoadGlobalConfig() returns defaults if file doesn't exist (no error)
+  - Development mode uses separate config file to avoid conflicts with production settings
 
 **Project Detection** (`internal/project/`):
 - Three-tier detection strategy:
