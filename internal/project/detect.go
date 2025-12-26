@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/settings"
 )
 
 // DetectProject attempts to determine the project name using a prioritized strategy:
@@ -46,12 +46,12 @@ func DetectProject() (string, error) {
 
 // DetectConfiguredProject returns the project name specified in the repository
 // configuration, if present, otherwise it falls back to auto-detection.
-// It loads configuration via config.FindAndLoad(); if a non-empty cfg.ProjectName
+// It loads configuration via settings.FindAndLoad(); if a non-empty cfg.ProjectName
 // is found that value is returned with a nil error. If no configured project
 // name exists or loading fails, DetectProject() is invoked and its result is
 // returned (project name, error).
 func DetectConfiguredProject() (string, error) {
-	if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil {
+	if cfg, _, err := settings.FindAndLoad(); err == nil && cfg != nil {
 		if cfg.ProjectName != "" {
 			return cfg.ProjectName, nil
 		}

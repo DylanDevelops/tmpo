@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
@@ -45,7 +45,7 @@ func StatusCmd() *cobra.Command {
 			duration := time.Since(running.StartTime)
 
 			ui.PrintSuccess(ui.EmojiStatus, fmt.Sprintf("Currently tracking: %s", ui.Bold(running.ProjectName)))
-			ui.PrintInfo(4, ui.Bold("Started"), config.FormatTime(running.StartTime))
+			ui.PrintInfo(4, ui.Bold("Started"), settings.FormatTime(running.StartTime))
 			ui.PrintInfo(4, ui.Bold("Duration"), ui.FormatDuration(duration))
 
 			if running.Description != "" {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/DylanDevelops/tmpo/internal/config"
 	"github.com/DylanDevelops/tmpo/internal/project"
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
@@ -53,7 +53,7 @@ func StartCmd() *cobra.Command {
 
 			// Load config to get hourly rate if available
 			var hourlyRate *float64
-			if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil && cfg.HourlyRate > 0 {
+			if cfg, _, err := settings.FindAndLoad(); err == nil && cfg != nil && cfg.HourlyRate > 0 {
 				hourlyRate = &cfg.HourlyRate
 			}
 
@@ -65,7 +65,7 @@ func StartCmd() *cobra.Command {
 
 			ui.PrintSuccess(ui.EmojiStart, fmt.Sprintf("Started tracking time for %s", ui.Bold(entry.ProjectName)))
 
-			if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil {
+			if cfg, _, err := settings.FindAndLoad(); err == nil && cfg != nil {
 				ui.PrintMuted(4, "└─ Config Source: .tmporc")
 			} else if project.IsInGitRepo() {
 				ui.PrintMuted(4, "└─ Config Source: git repository")

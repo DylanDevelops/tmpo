@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -14,13 +14,14 @@ import (
 func ConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
+		Aliases: []string{"settings", "preferences"},
 		Short: "Configure global tmpo settings",
 		Long:  `Set up global configuration for tmpo including currency, date/time format, and timezone.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ui.NewlineAbove()
 
 			// Load current global config
-			currentConfig, err := config.LoadGlobalConfig()
+			currentConfig, err := settings.LoadGlobalConfig()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("Failed to load config: %v", err))
 				os.Exit(1)
@@ -129,7 +130,7 @@ func ConfigCmd() *cobra.Command {
 			}
 
 			// Create new config with updated values
-			newConfig := &config.GlobalConfig{
+			newConfig := &settings.GlobalConfig{
 				Currency:   currencyCode,
 				DateFormat: dateFormat,
 				TimeFormat: timeFormat,
@@ -143,7 +144,7 @@ func ConfigCmd() *cobra.Command {
 			}
 
 			// Display success message
-			configPath, _ := config.GetGlobalConfigPath()
+			configPath, _ := settings.GetGlobalConfigPath()
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Configuration saved to %s", ui.Muted(configPath)))
 			ui.PrintInfo(4, ui.Bold("Currency"), currencyCode)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
@@ -125,9 +125,9 @@ func DeleteCmd() *cobra.Command {
 			fmt.Println()
 			ui.PrintInfo(4, ui.Bold("ID"), fmt.Sprintf("%d", selectedEntry.ID))
 			ui.PrintInfo(4, ui.Bold("Project"), selectedEntry.ProjectName)
-			ui.PrintInfo(4, ui.Bold("Start"), config.FormatDateTimeLong(selectedEntry.StartTime))
+			ui.PrintInfo(4, ui.Bold("Start"), settings.FormatDateTimeLong(selectedEntry.StartTime))
 			if selectedEntry.EndTime != nil {
-				ui.PrintInfo(4, ui.Bold("End"), config.FormatDateTimeLong(*selectedEntry.EndTime))
+				ui.PrintInfo(4, ui.Bold("End"), settings.FormatDateTimeLong(*selectedEntry.EndTime))
 				ui.PrintInfo(4, ui.Bold("Duration"), ui.FormatDuration(selectedEntry.Duration()))
 			} else {
 				ui.PrintInfo(4, ui.Bold("Status"), ui.Warning("Running"))
@@ -175,7 +175,7 @@ func DeleteCmd() *cobra.Command {
 // formatEntryLabelForDelete formats a time entry for display in the delete selection list
 // Shows running entries differently than completed ones
 func formatEntryLabelForDelete(entry *storage.TimeEntry) string {
-	startStr := config.FormatDateTimeDashed(entry.StartTime)
+	startStr := settings.FormatDateTimeDashed(entry.StartTime)
 
 	if entry.EndTime == nil {
 		// Running entry
@@ -187,7 +187,7 @@ func formatEntryLabelForDelete(entry *storage.TimeEntry) string {
 	}
 
 	// Completed entry
-	endStr := config.FormatTime(*entry.EndTime)
+	endStr := settings.FormatTime(*entry.EndTime)
 	duration := entry.Duration()
 	durationStr := ui.FormatDuration(duration)
 

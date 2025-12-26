@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DylanDevelops/tmpo/internal/config"
 	"github.com/DylanDevelops/tmpo/internal/project"
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -101,7 +101,7 @@ func InitCmd() *cobra.Command {
 			}
 
 			// Create the .tmporc file
-			err := config.CreateWithTemplate(name, hourlyRate, description)
+			err := settings.CreateWithTemplate(name, hourlyRate, description)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,7 @@ func TestDetectProjectName(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a .tmporc file with a project name
-		cfg := &config.Config{
+		cfg := &settings.Config{
 			ProjectName: "test-project-from-config",
 			HourlyRate:  75.0,
 		}
@@ -85,7 +85,7 @@ func TestDetectProjectName(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a .tmporc file with empty project name
-		cfg := &config.Config{
+		cfg := &settings.Config{
 			ProjectName: "",
 			HourlyRate:  50.0,
 		}

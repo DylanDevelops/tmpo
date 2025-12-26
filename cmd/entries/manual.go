@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DylanDevelops/tmpo/internal/config"
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/currency"
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/storage"
@@ -139,7 +139,7 @@ func ManualCmd() *cobra.Command {
 			}
 
 			var hourlyRate *float64
-			if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil && cfg.HourlyRate > 0 {
+			if cfg, _, err := settings.FindAndLoad(); err == nil && cfg != nil && cfg.HourlyRate > 0 {
 				hourlyRate = &cfg.HourlyRate
 			}
 
@@ -159,8 +159,8 @@ func ManualCmd() *cobra.Command {
 			duration := entry.Duration()
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created manual entry for %s", ui.Bold(entry.ProjectName)))
-			ui.PrintInfo(4, ui.Bold("Start"), config.FormatDateTimeLong(startTime))
-			ui.PrintInfo(4, ui.Bold("End"), config.FormatDateTimeLong(endTime))
+			ui.PrintInfo(4, ui.Bold("Start"), settings.FormatDateTimeLong(startTime))
+			ui.PrintInfo(4, ui.Bold("End"), settings.FormatDateTimeLong(endTime))
 			ui.PrintInfo(4, ui.Bold("Duration"), ui.FormatDuration(duration))
 
 			if entry.Description != "" {
@@ -170,7 +170,7 @@ func ManualCmd() *cobra.Command {
 			if entry.HourlyRate != nil {
 				// Get currency from global config
 				currencyCode := currency.DefaultCurrency
-				if globalCfg, err := config.LoadGlobalConfig(); err == nil {
+				if globalCfg, err := settings.LoadGlobalConfig(); err == nil {
 					currencyCode = globalCfg.Currency
 				}
 
@@ -285,7 +285,7 @@ func normalizeAMPM(input string) string {
 
 // detectProjectNameWithSource returns the project name
 func detectProjectNameWithSource() (string) {
-	if cfg, _, err := config.FindAndLoad(); err == nil && cfg != nil && cfg.ProjectName != "" {
+	if cfg, _, err := settings.FindAndLoad(); err == nil && cfg != nil && cfg.ProjectName != "" {
 		return cfg.ProjectName
 	}
 

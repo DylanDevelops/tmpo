@@ -52,7 +52,7 @@ goreleaser build --snapshot --clean
 - Database location: `$HOME/.tmpo/tmpo.db`
 - Schema: time_entries table with id, project_name, start_time, end_time, description, hourly_rate
 
-**Configuration** (`internal/config/`):
+**Configuration** (`internal/settings/`):
 - **Per-Project Configuration**: YAML-based config using `.tmporc` files
   - Config fields: project_name, hourly_rate, description
   - FindAndLoad() searches upward through parent directories for `.tmporc`
@@ -106,7 +106,7 @@ HourlyRate is optional (*float64). Stored as sql.NullFloat64 in database queries
 
 **Config Template Pattern:**
 The `.tmporc` file generation uses a template-based approach to ensure all fields are visible to users:
-- Template is defined as `configTemplate` constant in `internal/config/config.go`
+- Template is defined as `configTemplate` constant in `internal/settings/config.go`
 - Located directly below the `Config` struct for easy maintenance
 - When adding new fields to `Config`, update both the struct AND the template (marked with IMPORTANT comments)
 
