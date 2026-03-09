@@ -451,13 +451,14 @@ func TestMigrateNormalizeProjectNames_MixedCasing(t *testing.T) {
 	defer db.Close()
 
 	entries := []struct {
-		projectName   string
-		expectedName  string
+		projectName  string
+		expectedName string
 	}{
 		{"MyProject", "myproject"},
 		{"ALLCAPS", "allcaps"},
 		{"mixed-Case-Project", "mixed-case-project"},
 		{"already-lower", "already-lower"},
+		{"spaced project name", "spaced project name"},
 	}
 
 	for _, e := range entries {
