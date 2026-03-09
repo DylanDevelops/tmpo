@@ -397,13 +397,13 @@ func TestRunMigrations(t *testing.T) {
 	db := setupMigrationTestDB(t)
 	defer db.Close()
 
-	// Create entry with local timezone
+	// Create entry with local timezone and mixed-case project name
 	est, _ := time.LoadLocation("America/New_York")
 	localTime := time.Date(2026, 1, 8, 15, 30, 0, 0, est)
 
 	_, err := db.db.Exec(
 		"INSERT INTO time_entries (project_name, start_time, description) VALUES (?, ?, ?)",
-		"test-project",
+		"Test-Project",
 		localTime,
 		"Test entry",
 	)
@@ -418,13 +418,130 @@ func TestRunMigrations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, hasRun)
 
-	// Verify entry was converted
+	// Verify normalize migration ran
+	hasRun, err = db.hasMigrationRun(Migration002_NormalizeProjectNames)
+	assert.NoError(t, err)
+	assert.True(t, hasRun)
+
+	// Verify entry was converted to UTC and project name normalized
 	var startTime time.Time
+	var projectName string
 	err = db.db.QueryRow(
-		"SELECT start_time FROM time_entries WHERE id = 1",
-	).Scan(&startTime)
+		"SELECT start_time, project_name FROM time_entries WHERE id = 1",
+	).Scan(&startTime, &projectName)
 	assert.NoError(t, err)
 	assert.Equal(t, time.UTC, startTime.Location())
+	assert.Equal(t, "test-project", projectName)
+}
+
+func TestMigrateNormalizeProjectNames_FreshDatabase(t *testing.T) {
+	db := setupMigrationTestDB(t)
+	defer db.Close()
+
+	err := db.migrateNormalizeProjectNames()
+	assert.NoError(t, err)
+
+	hasRun, err := db.hasMigrationRun(Migration002_NormalizeProjectNames)
+	assert.NoError(t, err)
+	assert.True(t, hasRun)
+}
+
+func TestMigrateNormalizeProjectNames_MixedCasing(t *testing.T) {
+	db := setupMigrationTestDB(t)
+	defer db.Close()
+
+	entries := []struct {
+		projectName   string
+		expectedName  string
+	}{
+		{"MyProject", "myproject"},
+		{"ALLCAPS", "allcaps"},
+		{"mixed-Case-Project", "mixed-case-project"},
+		{"already-lower", "already-lower"},
+	}
+
+	for _, e := range entries {
+		_, err := db.db.Exec(
+			"INSERT INTO time_entries (project_name, start_time, description) VALUES (?, ?, ?)",
+			e.projectName,
+			time.Now().UTC(),
+			"Test",
+		)
+		assert.NoError(t, err)
+	}
+
+	_, err := db.db.Exec(
+		"INSERT INTO milestones (project_name, name, start_time) VALUES (?, ?, ?)",
+		"MyProject",
+		"Sprint 1",
+		time.Now().UTC(),
+	)
+	assert.NoError(t, err)
+
+	err = db.migrateNormalizeProjectNames()
+	assert.NoError(t, err)
+
+	rows, err := db.db.Query("SELECT project_name FROM time_entries ORDER BY id")
+	assert.NoError(t, err)
+	defer rows.Close()
+
+	i := 0
+	for rows.Next() {
+		var name string
+		assert.NoError(t, rows.Scan(&name))
+		assert.Equal(t, entries[i].expectedName, name)
+		i++
+	}
+
+	var milestoneProjectName string
+	err = db.db.QueryRow("SELECT project_name FROM milestones WHERE id = 1").Scan(&milestoneProjectName)
+	assert.NoError(t, err)
+	assert.Equal(t, "myproject", milestoneProjectName)
+}
+
+func TestMigrateNormalizeProjectNames_WithWhitespace(t *testing.T) {
+	db := setupMigrationTestDB(t)
+	defer db.Close()
+
+	_, err := db.db.Exec(
+		"INSERT INTO time_entries (project_name, start_time, description) VALUES (?, ?, ?)",
+		"  MyProject  ",
+		time.Now().UTC(),
+		"Test",
+	)
+	assert.NoError(t, err)
+
+	err = db.migrateNormalizeProjectNames()
+	assert.NoError(t, err)
+
+	var name string
+	err = db.db.QueryRow("SELECT project_name FROM time_entries WHERE id = 1").Scan(&name)
+	assert.NoError(t, err)
+	assert.Equal(t, "myproject", name)
+}
+
+func TestMigrateNormalizeProjectNames_Idempotent(t *testing.T) {
+	db := setupMigrationTestDB(t)
+	defer db.Close()
+
+	_, err := db.db.Exec(
+		"INSERT INTO time_entries (project_name, start_time, description) VALUES (?, ?, ?)",
+		"MyProject",
+		time.Now().UTC(),
+		"Test",
+	)
+	assert.NoError(t, err)
+
+	err = db.migrateNormalizeProjectNames()
+	assert.NoError(t, err)
+
+	err = db.migrateNormalizeProjectNames()
+	assert.NoError(t, err)
+
+	var name string
+	err = db.db.QueryRow("SELECT project_name FROM time_entries WHERE id = 1").Scan(&name)
+	assert.NoError(t, err)
+	assert.Equal(t, "myproject", name)
 }
 
 func TestMigrateTimeEntriesTableToUTC_EmptyTable(t *testing.T) {

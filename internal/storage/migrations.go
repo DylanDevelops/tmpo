@@ -9,7 +9,8 @@ import (
 // Migration keys
 // ! I'm adding this system so that future database migrations will be easier - Dylan
 const (
-	Migration001_UTCTimestamps = "001_utc_timestamps"
+	Migration001_UTCTimestamps         = "001_utc_timestamps"
+	Migration002_NormalizeProjectNames = "002_normalize_project_names"
 )
 
 // runMigrations executes all pending migrations
@@ -17,6 +18,11 @@ func (d *Database) runMigrations() error {
 	// Migration 1: Convert all timestamps to UTC
 	if err := d.migrateTimestampsToUTC(); err != nil {
 		return fmt.Errorf("timestamp UTC migration failed: %w", err)
+	}
+
+	// Migration 2: Normalize all project names to lowercase
+	if err := d.migrateNormalizeProjectNames(); err != nil {
+		return fmt.Errorf("project name normalization migration failed: %w", err)
 	}
 
 	return nil
@@ -161,6 +167,54 @@ func (d *Database) migrateTimeEntriesTableToUTC(tx *sql.Tx) error {
 		if err != nil {
 			return fmt.Errorf("failed to update entry %d: %w", update.id, err)
 		}
+	}
+
+	return nil
+}
+
+func (d *Database) migrateNormalizeProjectNames() error {
+	completed, err := d.hasMigrationRun(Migration002_NormalizeProjectNames)
+	if err != nil {
+		return err
+	}
+
+	if completed {
+		return nil
+	}
+
+	tx, err := d.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	_, err = tx.Exec("UPDATE time_entries SET project_name = LOWER(TRIM(project_name))")
+	if err != nil {
+		return fmt.Errorf("failed to normalize project names in time_entries: %w", err)
+	}
+
+	_, err = tx.Exec("UPDATE milestones SET project_name = LOWER(TRIM(project_name))")
+	if err != nil {
+		return fmt.Errorf("failed to normalize project names in milestones: %w", err)
+	}
+
+	_, err = tx.Exec(
+		"INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
+		Migration002_NormalizeProjectNames,
+		"completed",
+		time.Now().UTC(),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to mark migration complete: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit migration transaction: %w", err)
 	}
 
 	return nil

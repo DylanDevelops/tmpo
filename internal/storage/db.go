@@ -109,6 +109,10 @@ func Initialize() (*Database, error) {
 	return database, nil
 }
 
+func normalizeProjectName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
 func isColumnExistsError(err error) bool {
 	if err == nil {
 		return false
@@ -131,7 +135,7 @@ func (d *Database) CreateEntry(projectName, description string, hourlyRate *floa
 
 	result, err := d.db.Exec(
 		"INSERT INTO time_entries (project_name, start_time, description, hourly_rate, milestone_name) VALUES (?, ?, ?, ?, ?)",
-		projectName,
+		normalizeProjectName(projectName),
 		time.Now().UTC(),
 		description,
 		rate,
@@ -167,7 +171,7 @@ func (d *Database) CreateManualEntry(projectName, description string, startTime,
 
 	result, err := d.db.Exec(
 		"INSERT INTO time_entries (project_name, start_time, end_time, description, hourly_rate, milestone_name) VALUES (?, ?, ?, ?, ?, ?)",
-		projectName,
+		normalizeProjectName(projectName),
 		startTimeUTC,
 		endTimeUTC,
 		description,
@@ -274,7 +278,7 @@ func (d *Database) GetLastStoppedEntryByProject(projectName string) (*TimeEntry,
 		WHERE end_time IS NOT NULL AND project_name = ?
 		ORDER BY start_time DESC
 		LIMIT 1
-	`, projectName).Scan(&entry.ID, &entry.ProjectName, &entry.StartTime, &endTime, &entry.Description, &hourlyRate, &milestoneName)
+	`, normalizeProjectName(projectName)).Scan(&entry.ID, &entry.ProjectName, &entry.StartTime, &endTime, &entry.Description, &hourlyRate, &milestoneName)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -399,7 +403,7 @@ func (d *Database) GetEntriesByProject(projectName string) ([]*TimeEntry, error)
 		FROM time_entries
 		WHERE project_name = ?
 		ORDER BY start_time DESC
-	`, projectName)
+	`, normalizeProjectName(projectName))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to query entries: %w", err)
@@ -548,7 +552,7 @@ func (d *Database) GetCompletedEntriesByProject(projectName string) ([]*TimeEntr
 		FROM time_entries
 		WHERE project_name = ? AND end_time IS NOT NULL
 		ORDER BY start_time DESC
-	`, projectName)
+	`, normalizeProjectName(projectName))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to query entries: %w", err)
@@ -588,6 +592,7 @@ func (d *Database) GetCompletedEntriesByProject(projectName string) ([]*TimeEntr
 }
 
 func (d *Database) UpdateTimeEntry(id int64, entry *TimeEntry) error {
+	entry.ProjectName = normalizeProjectName(entry.ProjectName)
 	startTimeUTC := entry.StartTime.UTC()
 
 	var endTime sql.NullTime
@@ -629,7 +634,7 @@ func (d *Database) DeleteTimeEntry(id int64) error {
 func (d *Database) CreateMilestone(projectName, name string) (*Milestone, error) {
 	result, err := d.db.Exec(
 		"INSERT INTO milestones (project_name, name, start_time) VALUES (?, ?, ?)",
-		projectName,
+		normalizeProjectName(projectName),
 		name,
 		time.Now().UTC(),
 	)
@@ -676,7 +681,7 @@ func (d *Database) GetActiveMilestoneForProject(projectName string) (*Milestone,
 
 	err := d.db.QueryRow(
 		"SELECT id, project_name, name, start_time, end_time FROM milestones WHERE project_name = ? AND end_time IS NULL ORDER BY start_time DESC LIMIT 1",
-		projectName,
+		normalizeProjectName(projectName),
 	).Scan(&milestone.ID, &milestone.ProjectName, &milestone.Name, &milestone.StartTime, &endTime)
 
 	if err == sql.ErrNoRows {
@@ -700,7 +705,7 @@ func (d *Database) GetMilestoneByName(projectName, milestoneName string) (*Miles
 
 	err := d.db.QueryRow(
 		"SELECT id, project_name, name, start_time, end_time FROM milestones WHERE project_name = ? AND name = ?",
-		projectName,
+		normalizeProjectName(projectName),
 		milestoneName,
 	).Scan(&milestone.ID, &milestone.ProjectName, &milestone.Name, &milestone.StartTime, &endTime)
 
@@ -722,7 +727,7 @@ func (d *Database) GetMilestoneByName(projectName, milestoneName string) (*Miles
 func (d *Database) GetMilestonesByProject(projectName string) ([]*Milestone, error) {
 	rows, err := d.db.Query(
 		"SELECT id, project_name, name, start_time, end_time FROM milestones WHERE project_name = ? ORDER BY start_time DESC",
-		projectName,
+		normalizeProjectName(projectName),
 	)
 
 	if err != nil {
@@ -797,7 +802,7 @@ func (d *Database) FinishMilestone(id int64) error {
 func (d *Database) GetEntriesByMilestone(projectName, milestoneName string) ([]*TimeEntry, error) {
 	rows, err := d.db.Query(
 		"SELECT id, project_name, start_time, end_time, description, hourly_rate, milestone_name FROM time_entries WHERE project_name = ? AND milestone_name = ? ORDER BY start_time DESC",
-		projectName,
+		normalizeProjectName(projectName),
 		milestoneName,
 	)
 
