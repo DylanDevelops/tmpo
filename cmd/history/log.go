@@ -18,6 +18,7 @@ var (
 	logMilestone string
 	logToday     bool
 	logWeek      bool
+	logDate      string
 )
 
 func LogCmd() *cobra.Command {
@@ -51,6 +52,16 @@ func LogCmd() *cobra.Command {
 					projectName = detectedProject
 				}
 				entries, err = db.GetEntriesByMilestone(projectName, logMilestone)
+			} else if logDate != "" {
+				parsedDate, err := parseDateFlag(logDate)
+				if err != nil {
+					ui.PrintError(ui.EmojiError, err.Error())
+					ui.NewlineBelow()
+					os.Exit(1)
+				}
+				start := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, time.Local)
+				end := start.Add(24 * time.Hour)
+				entries, err = db.GetEntriesByDateRange(start, end)
 			} else if logToday {
 				year, month, day := time.Now().Year(), time.Now().Month(), time.Now().Day()
 				start := time.Date(year, month, day, 0, 0, 0, 0, time.Local)
@@ -137,6 +148,40 @@ func LogCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&logMilestone, "milestone", "m", "", "Filter by milestone")
 	cmd.Flags().BoolVarP(&logToday, "today", "t", false, "Show today's entries")
 	cmd.Flags().BoolVarP(&logWeek, "week", "w", false, "Show this week's entries")
+	cmd.Flags().StringVarP(&logDate, "date", "d", "", "Show entries for a specific date")
 
 	return cmd
+}
+
+func parseDateFlag(dateStr string) (time.Time, error) {
+	globalCfg, err := settings.LoadGlobalConfig()
+	if err != nil {
+		return time.Time{}, fmt.Errorf("loading config: %w", err)
+	}
+
+	layout := "2006-01-02"
+	displayFormat := "YYYY-MM-DD"
+
+	switch globalCfg.DateFormat {
+	case "MM/DD/YYYY":
+		layout = "01-02-2006"
+		displayFormat = "MM-DD-YYYY"
+	case "DD/MM/YYYY":
+		layout = "02-01-2006"
+		displayFormat = "DD-MM-YYYY"
+	}
+
+	parsedDate, err := time.ParseInLocation(layout, dateStr, time.Local)
+	if err == nil {
+		return parsedDate, nil
+	}
+
+	if layout != "2006-01-02" {
+		parsedDate, err = time.ParseInLocation("2006-01-02", dateStr, time.Local)
+		if err == nil {
+			return parsedDate, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("invalid date format. Please use %s or YYYY-MM-DD", displayFormat)
 }
