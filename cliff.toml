@@ -5,8 +5,13 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | striptags | trim }}
 {% for commit in commits -%}
-- {% if commit.breaking %}[breaking] {% endif %}{{ commit.message | split(pat="\\n") | first | upper_first }}\
-{% if commit.remote.username %} by [@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }}){% endif %}\
+{% set commit_title = commit.message | split(pat="\\n") | first -%}
+{% if commit.remote.pr_number -%}
+    {% set pr_str = " (#" ~ commit.remote.pr_number ~ ")" -%}
+    {% set commit_title = commit_title | replace(from=pr_str, to="") -%}
+{% endif -%}
+- {% if commit.breaking %}[breaking] {% endif %}{{ commit_title | upper_first }}\
+{% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}\
 {% if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}](https://github.com/DylanDevelops/tmpo/pull/{{ commit.remote.pr_number }}){% endif %}
 {% endfor %}
 
@@ -15,7 +20,7 @@ body = """
 {% if new_contributors | length > 0 %}
 ## New Contributors
 {% for contributor in new_contributors -%}
-- [@{{ contributor.username }}](https://github.com/{{ contributor.username }}) made their first contribution!
+- @{{ contributor.username }} made their first contribution!
 {% endfor %}
 {% endif %}
 
