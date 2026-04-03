@@ -10,6 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	startMilestoneProjectFlag string
+)
+
 func StartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start [name]",
@@ -26,7 +30,7 @@ func StartCmd() *cobra.Command {
 			}
 			defer db.Close()
 
-			projectName, err := project.DetectConfiguredProject()
+			projectName, err := project.DetectConfiguredProjectWithOverride(startMilestoneProjectFlag)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
 				os.Exit(1)
@@ -78,6 +82,8 @@ func StartCmd() *cobra.Command {
 			ui.NewlineBelow()
 		},
 	}
+
+	cmd.Flags().StringVarP(&startMilestoneProjectFlag, "project", "p", "", "Start a milestone for a specific global project")
 
 	return cmd
 }

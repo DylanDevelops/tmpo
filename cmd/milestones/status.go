@@ -12,6 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	statusMilestoneProjectFlag string
+)
+
 func StatusCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
@@ -27,7 +31,7 @@ func StatusCmd() *cobra.Command {
 			}
 			defer db.Close()
 
-			projectName, err := project.DetectConfiguredProject()
+			projectName, err := project.DetectConfiguredProjectWithOverride(statusMilestoneProjectFlag)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
 				os.Exit(1)
@@ -71,6 +75,8 @@ func StatusCmd() *cobra.Command {
 			ui.NewlineBelow()
 		},
 	}
+
+	cmd.Flags().StringVarP(&statusMilestoneProjectFlag, "project", "p", "", "Get the milestone status for a specific global project")
 
 	return cmd
 }
