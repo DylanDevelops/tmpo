@@ -101,6 +101,7 @@ View your time tracking history.
 - `--project "name"` - Filter entries by project name
 - `--today` - Show only today's entries
 - `--week` - Show this week's entries
+- `--date` - Show a specific date's entries
 
 **Examples:**
 
@@ -111,6 +112,7 @@ tmpo log --project "Client Work"    # Filter by global project
 tmpo log --milestone "Sprint 1"     # Filter by milestone
 tmpo log --today                    # Show today's entries
 tmpo log --week                     # Show this week's entries
+tmpo log --date "2026-01-15"        # Show January 15th, 2026 entries
 ```
 
 ### `tmpo stats`
@@ -122,6 +124,7 @@ Display statistics about your tracked time.
 - `--today` - Show only today's statistics
 - `--week` - Show this week's statistics
 - `--month` - Show this month's statistics
+- `--date` - Show a specific date's statistics
 
 **Examples:**
 
@@ -129,6 +132,7 @@ Display statistics about your tracked time.
 tmpo stats          # All-time stats
 tmpo stats --today  # Today's stats
 tmpo stats --week   # This week's stats
+tmpo stats --date "2026-01-15" # January 15th, 2026 entries
 ```
 
 ## Configuration
@@ -232,14 +236,18 @@ Milestones help you organize time entries into time-boxed periods like sprints, 
 
 ### `tmpo milestone start [name]`
 
-Start a new milestone for the current project. All new time entries will be automatically tagged with this milestone until you finish it.
+Start a new milestone for the current project, or the one specified. All new time entries will be automatically tagged with this milestone until you finish it.
+
+**Options:**
+
+- `--project "name"` / `-p "name"` - Start a milestone for a specific global project
 
 **Examples:**
 
 ```bash
 tmpo milestone start "Sprint 1"
 tmpo milestone start "Release 2.0"
-tmpo milestone start "Q1 Planning"
+tmpo milestone start "Q1 Planning" --project "GlobalProject"
 ```
 
 **Notes:**
@@ -250,29 +258,28 @@ tmpo milestone start "Q1 Planning"
 
 ### `tmpo milestone finish`
 
-Finish the currently active milestone for the current project. This stops auto-tagging new entries and marks the milestone as completed.
+Finish the currently active milestone for the current project, or the one specified. This stops auto-tagging new entries and marks the milestone as completed.
+
+**Options:**
+
+- `--project "name"` / `-p "name"` - Finish a milestone for a specific global project
 
 ```bash
 tmpo milestone finish
-# Output:
-# [tmpo] Finished milestone Sprint 1
-#     Duration: 2w 3d 5h 30m
-#     Entries: 47
+tmpo milestone finish --project "GlobalProject"
 ```
 
 ### `tmpo milestone status`
 
 Show detailed information about the currently active milestone.
 
+**Options:**
+
+- `--project "name"` / `-p "name"` - Show milestone status for a specific global project
+
 ```bash
 tmpo milestone status
-# Output:
-# [tmpo] Active Milestone: Sprint 1
-#     Project: my-project
-#     Started: Dec 15, 2024 9:00 AM
-#     Duration: 5d 12h 30m
-#     Entries: 23
-#     Total Time: 42h 15m
+tmpo milestone status --project "GlobalProject"
 ```
 
 ### `tmpo milestone list`
