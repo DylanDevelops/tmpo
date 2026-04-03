@@ -18,7 +18,7 @@ func StartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start [name]",
 		Short: "Start a new milestone",
-		Long:  `Start a new milestone for the current project. Time entries created after starting a milestone will be automatically tagged with it.`,
+		Long:  `Start a new milestone for the current project, or the one specified. Time entries created after starting a milestone will be automatically tagged with it.`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			ui.NewlineAbove()

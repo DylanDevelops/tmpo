@@ -20,7 +20,7 @@ func StatusCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Show active milestone status",
-		Long:  `Display information about the currently active milestone for the current project.`,
+		Long:  `Display information about the currently active milestone for the current project, or the one specified.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ui.NewlineAbove()
 
@@ -45,7 +45,7 @@ func StatusCmd() *cobra.Command {
 			}
 
 			if activeMilestone == nil {
-				ui.PrintWarning(ui.EmojiWarning, "No active milestone")
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("No active milestone found for %s", projectName))
 				ui.PrintMuted(0, "Use 'tmpo milestone start' to start a new milestone.")
 				ui.NewlineBelow()
 				return
