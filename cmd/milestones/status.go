@@ -12,11 +12,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	statusMilestoneProjectFlag string
+)
+
 func StatusCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Show active milestone status",
-		Long:  `Display information about the currently active milestone for the current project.`,
+		Long:  `Display information about the currently active milestone for the current project, or the one specified.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ui.NewlineAbove()
 
@@ -27,7 +31,7 @@ func StatusCmd() *cobra.Command {
 			}
 			defer db.Close()
 
-			projectName, err := project.DetectConfiguredProject()
+			projectName, err := project.DetectConfiguredProjectWithOverride(statusMilestoneProjectFlag)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
 				os.Exit(1)
@@ -41,7 +45,7 @@ func StatusCmd() *cobra.Command {
 			}
 
 			if activeMilestone == nil {
-				ui.PrintWarning(ui.EmojiWarning, "No active milestone")
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("No active milestone found for %s", projectName))
 				ui.PrintMuted(0, "Use 'tmpo milestone start' to start a new milestone.")
 				ui.NewlineBelow()
 				return
@@ -71,6 +75,8 @@ func StatusCmd() *cobra.Command {
 			ui.NewlineBelow()
 		},
 	}
+
+	cmd.Flags().StringVarP(&statusMilestoneProjectFlag, "project", "p", "", "Get the milestone status for a specific global project")
 
 	return cmd
 }

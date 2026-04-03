@@ -10,11 +10,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	finishMilestoneProjectFlag string
+)
+
 func FinishCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "finish",
 		Short: "Finish the active milestone",
-		Long:  `Finish the currently active milestone for the current project. This marks the milestone as completed and stops auto-tagging new time entries with it.`,
+		Long:  `Finish the currently active milestone for the current project, or the one specified. This marks the milestone as completed and stops auto-tagging new time entries with it.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ui.NewlineAbove()
 
@@ -25,7 +29,7 @@ func FinishCmd() *cobra.Command {
 			}
 			defer db.Close()
 
-			projectName, err := project.DetectConfiguredProject()
+			projectName, err := project.DetectConfiguredProjectWithOverride(finishMilestoneProjectFlag)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
 				os.Exit(1)
@@ -39,7 +43,7 @@ func FinishCmd() *cobra.Command {
 			}
 
 			if activeMilestone == nil {
-				ui.PrintError(ui.EmojiError, "No active milestone found")
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("No active milestone found for %s", projectName))
 				ui.PrintMuted(0, "Use 'tmpo milestone start' to start a new milestone.")
 				ui.NewlineBelow()
 				os.Exit(1)
@@ -72,6 +76,8 @@ func FinishCmd() *cobra.Command {
 			ui.NewlineBelow()
 		},
 	}
+
+	cmd.Flags().StringVarP(&finishMilestoneProjectFlag, "project", "p", "", "Finish a milestone for a specific global project")
 
 	return cmd
 }
