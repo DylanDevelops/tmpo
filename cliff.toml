@@ -11,7 +11,7 @@ body = """
     {% set commit_title = commit_title | replace(from=pr_str, to="") -%}
 {% endif -%}
 - {% if commit.breaking %}[breaking] {% endif %}{{ commit_title | upper_first }}\
-{% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}\
+{% if commit.author.name %} by **{{ commit.author.name }}**{% endif %}\
 {% if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}](https://github.com/DylanDevelops/tmpo/pull/{{ commit.remote.pr_number }}){% endif %}
 {% endfor %}
 

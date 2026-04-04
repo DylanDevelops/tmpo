@@ -1,0 +1,30 @@
+name: Dependabot PR Title
+
+on:
+    pull_request_target:
+        types: [opened, reopened, synchronize]
+
+permissions:
+    pull-requests: write
+
+jobs:
+    prefix-title:
+        runs-on: ubuntu-latest
+        if: github.actor == 'dependabot[bot]'
+        steps:
+            - name: Update PR Title
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_URL: ${{ github.event.pull_request.html_url }}
+                  PR_TITLE: ${{ github.event.pull_request.title }}
+              run: |
+                  # Check if it already has a prefix to prevent double-prefixing
+                  if [[ "$PR_TITLE" != build\(deps\)* ]] && [[ "$PR_TITLE" != ci\(github-actions\)* ]]; then
+                    # If it's a GitHub Action update, use ci(github-actions)
+                    if [[ "$PR_TITLE" == *"github-actions"* || "$PR_TITLE" == *"actions/"* ]]; then
+                      gh pr edit "$PR_URL" --title "ci(github-actions): $PR_TITLE"
+                    else
+                      # Otherwise, use build(deps) for Go modules
+                      gh pr edit "$PR_URL" --title "build(deps): $PR_TITLE"
+                    fi
+                  fi
