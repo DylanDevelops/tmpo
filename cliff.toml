@@ -1,3 +1,7 @@
+[remote.github]
+owner = "DylanDevelops"
+repo = "tmpo"
+
 [changelog]
 body = """
 ## What's Changed
@@ -6,13 +10,13 @@ body = """
 ### {{ group | striptags | trim }}
 {% for commit in commits -%}
 {% set commit_title = commit.message | split(pat="\\n") | first -%}
-{% if commit.remote.pr_number -%}
-    {% set pr_str = " (#" ~ commit.remote.pr_number ~ ")" -%}
+{% if commit.github.pr_number -%}
+    {% set pr_str = " (#" ~ commit.github.pr_number ~ ")" -%}
     {% set commit_title = commit_title | replace(from=pr_str, to="") -%}
 {% endif -%}
 - {% if commit.breaking %}[breaking] {% endif %}{{ commit_title | upper_first }}\
-{% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}\
-{% if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}](https://github.com/DylanDevelops/tmpo/pull/{{ commit.remote.pr_number }}){% endif %}
+{% if commit.github.username %} by @{{ commit.github.username }}{% endif %}\
+{% if commit.github.pr_number %} in [#{{ commit.github.pr_number }}](https://github.com/DylanDevelops/tmpo/pull/{{ commit.github.pr_number }}){% endif %}
 {% endfor %}
 
 {% endfor %}
@@ -23,7 +27,6 @@ body = """
 - @{{ contributor.username }} made their first contribution!
 {% endfor %}
 {% endif %}
-
 
 {% if previous.version %}
 **Full Changelog**: https://github.com/DylanDevelops/tmpo/compare/{{ previous.version }}...{{ version }}
@@ -38,12 +41,12 @@ conventional_commits = true
 filter_unconventional = true
 filter_commits = true
 commit_parsers = [
-  { message = "^feat", group = "<!-- 0 -->✨ Features" },
-  { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
-  { message = "^perf", group = "<!-- 2 -->🚀 Performance Improvements" },
-  { message = "^refactor", group = "<!-- 3 -->🛠️ Refactoring" },
-  { message = "^docs?", group = "<!-- 4 -->📚 Documentation" },
-  { message = "^(build|ci)", group = "<!-- 5 -->🔧 Build & Dependencies" },
-  { message = "^chore", group = "<!-- 6 -->🧹 Maintenance" },
-  { message = "^Merge ", skip = true },
+    { message = "^feat", group = "<!-- 0 -->✨ Features" },
+    { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
+    { message = "^perf", group = "<!-- 2 -->🚀 Performance Improvements" },
+    { message = "^refactor", group = "<!-- 3 -->🛠️ Refactoring" },
+    { message = "^docs?", group = "<!-- 4 -->📚 Documentation" },
+    { message = "^(build|ci)", group = "<!-- 5 -->🔧 Build & Dependencies" },
+    { message = "^chore", group = "<!-- 6 -->🧹 Maintenance" },
+    { message = "^Merge ", skip = true },
 ]
