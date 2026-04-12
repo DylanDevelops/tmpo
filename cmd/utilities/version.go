@@ -79,6 +79,7 @@ func checkForUpdates() {
 	if updateInfo.HasUpdate {
 		fmt.Printf("\n%s %s\n", ui.Info("New Update Available:"), ui.Bold(strings.TrimPrefix(updateInfo.LatestVersion, "v")))
 		fmt.Printf("%s", ui.Muted(updateInfo.UpdateURL))
+		ui.NewlineBelow()
 	}
 }
 
