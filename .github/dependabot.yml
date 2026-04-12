@@ -7,6 +7,8 @@ updates:
       interval: "weekly"
     labels:
       - "dependencies"
+    commit-message:
+      prefix: "build(deps)"
 
   # Maintain GitHub Actions in your workflows
   - package-ecosystem: "github-actions"
@@ -16,3 +18,5 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    commit-message:
+      prefix: "ci(github-actions)"
