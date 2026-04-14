@@ -109,7 +109,6 @@ brews:
     homepage: "https://github.com/DylanDevelops/tmpo"
     description: "Minimal CLI time tracker for developers"
     license: "MIT"
-    extra_install: |
-      bash_completion.install "completions/tmpo.bash" => "tmpo"
-      zsh_completion.install "completions/tmpo.zsh" => "_tmpo"
-      fish_completion.install "completions/tmpo.fish"
+    install: |
+      bin.install "tmpo"
+      generate_completions_from_executable(bin/"tmpo", "completion")
