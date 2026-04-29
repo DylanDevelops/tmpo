@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/DylanDevelops/tmpo/cmd/backups"
 	"github.com/DylanDevelops/tmpo/cmd/config"
 	"github.com/DylanDevelops/tmpo/cmd/entries"
 	"github.com/DylanDevelops/tmpo/cmd/history"
@@ -65,6 +66,9 @@ Track time effortlessly with automatic project detection and simple commands.`,
 
 	// Milestones
 	cmd.AddCommand(milestones.MilestoneCmds())
+
+	// Backups
+	cmd.AddCommand(backups.BackupCmds())
 
 	return cmd
 }
