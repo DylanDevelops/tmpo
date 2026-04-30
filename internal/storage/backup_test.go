@@ -138,7 +138,9 @@ func TestGetBackupSchemaVersion(t *testing.T) {
 }
 
 func TestListBackups_EmptyWhenDirAbsent(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 	t.Setenv("TMPO_DEV", "")
 
 	backups, err := ListBackups()
@@ -149,6 +151,7 @@ func TestListBackups_EmptyWhenDirAbsent(t *testing.T) {
 func TestListBackups_IgnoresNonDBFiles(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 	t.Setenv("TMPO_DEV", "")
 
 	backupDir := filepath.Join(tmpHome, ".tmpo", "backups")
@@ -163,6 +166,7 @@ func TestListBackups_IgnoresNonDBFiles(t *testing.T) {
 func TestListBackups_SortedNewestFirst(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 	t.Setenv("TMPO_DEV", "")
 
 	backupDir := filepath.Join(tmpHome, ".tmpo", "backups")
@@ -192,7 +196,9 @@ func TestListBackups_SortedNewestFirst(t *testing.T) {
 }
 
 func TestCreateBackup(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 	t.Setenv("TMPO_DEV", "")
 
 	db, err := Initialize()
@@ -214,7 +220,9 @@ func TestCreateBackup(t *testing.T) {
 }
 
 func TestRestoreBackup(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 	t.Setenv("TMPO_DEV", "")
 
 	// Create and populate the live DB, then snapshot it
