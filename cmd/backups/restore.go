@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	restoreID string
+	restoreIDFlag string
 )
 
 func RestoreCmd() *cobra.Command {
@@ -40,8 +40,8 @@ func RestoreCmd() *cobra.Command {
 
 			var selected *storage.BackupInfo
 
-			if restoreID != "" {
-				if id, err := strconv.Atoi(restoreID); err == nil {
+			if restoreIDFlag != "" {
+				if id, err := strconv.Atoi(restoreIDFlag); err == nil {
 					for i := range backups {
 						if backups[i].ID == id {
 							selected = &backups[i]
@@ -55,13 +55,13 @@ func RestoreCmd() *cobra.Command {
 					}
 				} else {
 					for i := range backups {
-						if backups[i].Filename == restoreID {
+						if backups[i].Filename == restoreIDFlag {
 							selected = &backups[i]
 							break
 						}
 					}
 					if selected == nil {
-						ui.PrintError(ui.EmojiError, fmt.Sprintf("no backup found with filename %q", restoreID))
+						ui.PrintError(ui.EmojiError, fmt.Sprintf("no backup found with filename %q", restoreIDFlag))
 						ui.NewlineBelow()
 						os.Exit(1)
 					}
@@ -124,7 +124,7 @@ func RestoreCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&restoreID, "id", "i", "", "backup ID or filename to restore (skips interactive selection)")
+	cmd.Flags().StringVarP(&restoreIDFlag, "id", "i", "", "backup ID or filename to restore (skips interactive selection)")
 
 	return cmd
 }

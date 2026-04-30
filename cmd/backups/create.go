@@ -25,6 +25,18 @@ func CreateCmd() *cobra.Command {
 			}
 			defer db.Close()
 
+			running, err := db.GetRunningEntry()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("checking for active timer: %v", err))
+				ui.NewlineBelow()
+				os.Exit(1)
+			}
+			if running != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf(`timer is running for %s — stop it before creating a backup`, ui.Bold(running.ProjectName)))
+				ui.NewlineBelow()
+				os.Exit(1)
+			}
+
 			backup, err := db.CreateBackup()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("creating backup: %v", err))
