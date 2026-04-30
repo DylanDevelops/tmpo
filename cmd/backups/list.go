@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
@@ -45,7 +46,7 @@ func ListCmd() *cobra.Command {
 
 				fmt.Printf("  %-4d  %-28s  %-8s  %s\n",
 					b.ID,
-					b.CreatedAt.Local().Format("Jan 02, 2006 15:04:05"),
+					settings.FormatDateTime(b.CreatedAt),
 					ui.FormatFileSize(b.Size),
 					schemaTag,
 				)

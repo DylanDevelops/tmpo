@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/manifoldco/promptui"
@@ -74,7 +75,7 @@ func RestoreCmd() *cobra.Command {
 					}
 					items[i] = fmt.Sprintf("[%d]  %s  %s  (%s)",
 						b.ID,
-						b.CreatedAt.Local().Format("Jan 02, 2006 15:04:05"),
+						settings.FormatDateTime(b.CreatedAt),
 						ui.FormatFileSize(b.Size),
 						versionTag,
 					)
