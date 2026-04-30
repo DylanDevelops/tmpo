@@ -12,6 +12,7 @@ func BackupCmds() *cobra.Command {
 	cmd.AddCommand(CreateCmd())
 	cmd.AddCommand(RestoreCmd())
 	cmd.AddCommand(ListCmd())
+	cmd.AddCommand(DeleteCmd())
 
 	return cmd
 }
