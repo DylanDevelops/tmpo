@@ -12,6 +12,14 @@ const (
 	Migration001_UTCTimestamps = "001_utc_timestamps"
 )
 
+// allMigrationKeys lists every migration in order. Adding a new migration here automatically bumps CurrentSchemaVersion.
+var allMigrationKeys = []string{
+	Migration001_UTCTimestamps,
+}
+
+// CurrentSchemaVersion is the number of migrations the current binary knows about.
+var CurrentSchemaVersion = len(allMigrationKeys)
+
 // runMigrations executes all pending migrations
 func (d *Database) runMigrations() error {
 	// Migration 1: Convert all timestamps to UTC

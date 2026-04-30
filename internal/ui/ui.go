@@ -43,6 +43,7 @@ const (
 	EmojiInit      = "⚙️"
 	EmojiExport    = "📤"
 	EmojiMilestone = "🎯"
+	EmojiBackup    = "💾"
 	EmojiSuccess   = "✅"
 	EmojiError     = "❌"
 	EmojiWarning   = "⚠️"
@@ -146,6 +147,15 @@ func NewlineBelow() {
 	if !shell.IsLegacyWindowsCMD() {
 		fmt.Println()
 	}
+}
+
+func FormatFileSize(bytes int64) string {
+	if bytes < 1024 {
+		return fmt.Sprintf("%d B", bytes)
+	} else if bytes < 1024*1024 {
+		return fmt.Sprintf("%.1f KB", float64(bytes)/1024)
+	}
+	return fmt.Sprintf("%.1f MB", float64(bytes)/(1024*1024))
 }
 
 func FormatDuration(d time.Duration) string {

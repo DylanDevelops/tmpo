@@ -108,6 +108,62 @@ func TestCombinedFormattingFunctions(t *testing.T) {
 	})
 }
 
+func TestFormatFileSize(t *testing.T) {
+	tests := []struct {
+		name     string
+		bytes    int64
+		expected string
+	}{
+		{
+			name:     "zero bytes",
+			bytes:    0,
+			expected: "0 B",
+		},
+		{
+			name:     "bytes under 1 KB",
+			bytes:    512,
+			expected: "512 B",
+		},
+		{
+			name:     "exactly 1023 bytes stays in bytes",
+			bytes:    1023,
+			expected: "1023 B",
+		},
+		{
+			name:     "exactly 1 KB",
+			bytes:    1024,
+			expected: "1.0 KB",
+		},
+		{
+			name:     "fractional kilobytes",
+			bytes:    1536,
+			expected: "1.5 KB",
+		},
+		{
+			name:     "whole kilobytes",
+			bytes:    24576,
+			expected: "24.0 KB",
+		},
+		{
+			name:     "exactly 1 MB",
+			bytes:    1024 * 1024,
+			expected: "1.0 MB",
+		},
+		{
+			name:     "multiple megabytes",
+			bytes:    2*1024*1024 + 512*1024,
+			expected: "2.5 MB",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := FormatFileSize(tt.bytes)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestFormatDuration(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -194,6 +250,7 @@ func TestConstants(t *testing.T) {
 		assert.NotEmpty(t, EmojiManual)
 		assert.NotEmpty(t, EmojiInit)
 		assert.NotEmpty(t, EmojiExport)
+		assert.NotEmpty(t, EmojiBackup)
 		assert.NotEmpty(t, EmojiSuccess)
 		assert.NotEmpty(t, EmojiError)
 		assert.NotEmpty(t, EmojiWarning)

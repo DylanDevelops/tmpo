@@ -15,16 +15,22 @@ type Database struct {
 	db *sql.DB
 }
 
-func Initialize() (*Database, error) {
+func getTmpoDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
-
 	if err != nil {
-		return nil, fmt.Errorf("failed to get home directory: %w", err)
+		return "", fmt.Errorf("failed to get home directory: %w", err)
 	}
-
 	tmpoDir := filepath.Join(homeDir, ".tmpo")
 	if devMode := os.Getenv("TMPO_DEV"); devMode == "1" || devMode == "true" {
 		tmpoDir = filepath.Join(homeDir, ".tmpo-dev")
+	}
+	return tmpoDir, nil
+}
+
+func Initialize() (*Database, error) {
+	tmpoDir, err := getTmpoDir()
+	if err != nil {
+		return nil, err
 	}
 
 	if err := os.MkdirAll(tmpoDir, 0755); err != nil {
