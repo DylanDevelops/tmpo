@@ -17,6 +17,7 @@
 - **🌐 Global Projects** - Track time for any project from any directory without configuration files
 - **🎯 Milestone Tracking** - Organize time entries into sprints, releases, or project phases
 - **💾 Local & Private Storage** - All data stored locally in SQLite - your time tracking stays private
+- **🔒 Built-in Backups** - Create, restore, and manage database backups with a single command
 - **📊 Rich Reporting** - View stats, export to CSV/JSON, and track hourly rates
 - **⚡ Zero Configuration Needed** - Works out of the box, configure only when you need to
 
