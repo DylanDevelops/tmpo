@@ -11,12 +11,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	restoreID string
+)
+
 func RestoreCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "restore [id]",
+		Use:   "restore",
 		Short: "Restore from a backup",
-		Long:  `Restore your database from an existing backup. Optionally pass a backup ID or filename to skip the selection prompt.`,
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Restore your database from an existing backup.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ui.NewlineAbove()
 
@@ -36,9 +39,8 @@ func RestoreCmd() *cobra.Command {
 
 			var selected *storage.BackupInfo
 
-			if len(args) > 0 {
-				identifier := args[0]
-				if id, err := strconv.Atoi(identifier); err == nil {
+			if restoreID != "" {
+				if id, err := strconv.Atoi(restoreID); err == nil {
 					for i := range backups {
 						if backups[i].ID == id {
 							selected = &backups[i]
@@ -52,13 +54,13 @@ func RestoreCmd() *cobra.Command {
 					}
 				} else {
 					for i := range backups {
-						if backups[i].Filename == identifier {
+						if backups[i].Filename == restoreID {
 							selected = &backups[i]
 							break
 						}
 					}
 					if selected == nil {
-						ui.PrintError(ui.EmojiError, fmt.Sprintf("no backup found with filename %q", identifier))
+						ui.PrintError(ui.EmojiError, fmt.Sprintf("no backup found with filename %q", restoreID))
 						ui.NewlineBelow()
 						os.Exit(1)
 					}
@@ -120,6 +122,8 @@ func RestoreCmd() *cobra.Command {
 			ui.NewlineBelow()
 		},
 	}
+
+	cmd.Flags().StringVarP(&restoreID, "id", "i", "", "backup ID or filename to restore (skips interactive selection)")
 
 	return cmd
 }
