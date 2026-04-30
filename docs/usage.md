@@ -471,6 +471,92 @@ my-project,2024-01-15 14:30:00,2024-01-15 16:45:00,2.25,Implementing feature,Spr
 ]
 ```
 
+## Backup Management
+
+tmpo can back up and restore your entire database. Backups are plain SQLite files stored in `~/.tmpo/backups/` and can be created, listed, restored, or deleted at any time.
+
+### `tmpo backup create`
+
+Create a snapshot of your database. The backup file is named `tmpo-YYYYMMDD-HHMMSS.db`.
+
+**Examples:**
+
+```bash
+tmpo backup create
+# 💾  Backup created successfully
+#
+#   File:   tmpo-20260429-202433.db
+#   Path:   /Users/you/.tmpo/backups/tmpo-20260429-202433.db
+#   Size:   44.0 KB
+```
+
+> [!NOTE]
+> A timer must not be running when you create a backup. Stop any active session with `tmpo stop` first.
+
+### `tmpo backup list`
+
+List all existing backups with their ID, creation date, size, and schema version status.
+
+**Examples:**
+
+```bash
+tmpo backup list
+#
+#   ID    Created                       Size      Schema
+#
+#   1     04/29/2026 8:24 PM            44.0 KB   ✅ v1 (current)
+#   2     04/28/2026 9:00 AM            43.5 KB   ✅ v1 (current)
+```
+
+**Notes:**
+
+- IDs are assigned newest-first and can be used with `--id` in `restore` and `delete`
+- Schema shows whether the backup's database schema matches the current binary
+- Backups created before a tmpo upgrade may show ⚠️ `v0 (outdated)` — they can still be restored, and migrations will run automatically after
+
+### `tmpo backup restore`
+
+Restore your database from a backup. **This overwrites your current database.**
+
+**Options:**
+
+- `--id VALUE` / `-i VALUE` - Backup ID or filename to restore, skips interactive selection
+
+**Examples:**
+
+```bash
+tmpo backup restore                              # Interactive selection prompt
+tmpo backup restore --id 2                       # Restore by ID
+tmpo backup restore -i tmpo-20260428-090000.db   # Restore by filename
+```
+
+**Interactive Flow:**
+
+1. Select a backup from the list using arrow keys
+2. If the backup schema is outdated, a warning is shown (migrations will auto-run after restore)
+3. Confirm restoration before overwriting your current database
+
+### `tmpo backup delete`
+
+Permanently delete a backup. **This cannot be undone.**
+
+**Options:**
+
+- `--id VALUE` / `-i VALUE` - Backup ID or filename to delete, skips interactive selection
+
+**Examples:**
+
+```bash
+tmpo backup delete                              # Interactive selection prompt
+tmpo backup delete --id 2                       # Delete by ID
+tmpo backup delete -i tmpo-20260428-090000.db   # Delete by filename
+```
+
+**Interactive Flow:**
+
+1. Select a backup from the list using arrow keys
+2. Confirm permanent deletion before proceeding
+
 ## Tips and Workflows
 
 ### Taking Breaks with Pause/Resume
