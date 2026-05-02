@@ -39,6 +39,7 @@ Track time effortlessly with automatic project detection and simple commands.`,
 	cmd.Flags().BoolP("version", "v", false, "version for tmpo")
 
 	// Utilities
+	cmd.AddCommand(utilities.UndoCmd())
 	cmd.AddCommand(utilities.VersionCmd())
 
 	// Tracking
