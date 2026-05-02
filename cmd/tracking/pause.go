@@ -38,6 +38,8 @@ func PauseCmd() *cobra.Command {
 				os.Exit(0)
 			}
 
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionPause, EntryID: running.ID, ProjectName: running.ProjectName})
+
 			err = db.StopEntry(running.ID)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))

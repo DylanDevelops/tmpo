@@ -48,6 +48,7 @@ const (
 	EmojiError     = "❌"
 	EmojiWarning   = "⚠️"
 	EmojiInfo      = "ℹ️"
+	EmojiUndo      = "↩️"
 )
 
 func Success(message string) string {

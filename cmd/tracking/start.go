@@ -74,6 +74,8 @@ func StartCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionStart, EntryID: entry.ID, ProjectName: entry.ProjectName})
+
 			ui.PrintSuccess(ui.EmojiStart, fmt.Sprintf("Started tracking time for %s", ui.Bold(entry.ProjectName)))
 
 			// communicate config source to user
