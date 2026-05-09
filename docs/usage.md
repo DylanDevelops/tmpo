@@ -77,6 +77,9 @@ tmpo resume --project "Client Work"    # Resume a global project from anywhere
 - Quickly restart the same task
 - Resume a global project from any directory
 
+> [!TIP]
+> Made a mistake? Run `tmpo undo` to instantly revert your last action — start, stop, pause, resume, manual entry creation, or deletion. See [`tmpo undo`](#tmpo-undo) for details.
+
 ### `tmpo status`
 
 View the current tracking session with elapsed time.
@@ -422,6 +425,40 @@ tmpo delete --show-all-projects    # Select project first, then entry
 - Remove duplicate entries
 - Delete test/accidental entries
 - Clean up your time tracking history
+
+### `tmpo undo`
+
+Revert the most recent time-tracking action in case of a mistake. A single confirmation prompt is shown before any change is made.
+
+**Supported actions:**
+
+| Action        | What undo does                                    |
+|---------------|---------------------------------------------------|
+| `tmpo start`  | Deletes the entry that was just created           |
+| `tmpo stop`   | Re-opens the stopped entry as a running timer     |
+| `tmpo pause`  | Re-opens the paused entry as a running timer      |
+| `tmpo resume` | Deletes the new entry that was created to resume  |
+| `tmpo manual` | Deletes the manually created entry                |
+| `tmpo delete` | Restores the deleted entry with its original data |
+
+**Examples:**
+
+```bash
+tmpo undo
+# ↩️  Last action: Stopped tracking my-project
+#
+# Undo this action? [y/N]: y
+# ↩️  Undo successful.
+
+tmpo undo
+# ⚠️  Nothing to undo.
+```
+
+**Notes:**
+
+- Only the single most recent action can be undone — tmpo does not maintain a full history stack
+- Running `tmpo undo` a second time will show "Nothing to undo"
+- Undoing a `stop` or `pause` will fail if another timer is already running — stop it first with `tmpo stop`
 
 ### `tmpo export`
 
