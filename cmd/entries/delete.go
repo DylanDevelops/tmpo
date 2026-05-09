@@ -161,6 +161,8 @@ func DeleteCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionDelete, ProjectName: selectedEntry.ProjectName, Entry: selectedEntry})
+
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, "Entry deleted successfully")
 			ui.NewlineBelow()

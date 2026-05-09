@@ -43,6 +43,8 @@ func StopCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionStop, EntryID: running.ID, ProjectName: running.ProjectName})
+
 			duration := time.Since(running.StartTime)
 
 			ui.PrintSuccess(ui.EmojiStop, fmt.Sprintf("Stopped tracking %s", ui.Bold(running.ProjectName)))

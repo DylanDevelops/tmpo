@@ -68,6 +68,8 @@ func ResumeCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionResume, EntryID: entry.ID, ProjectName: entry.ProjectName})
+
 			ui.PrintSuccess(ui.EmojiStart, fmt.Sprintf("Resumed tracking time for %s", ui.Bold(entry.ProjectName)))
 
 			if entry.Description != "" {

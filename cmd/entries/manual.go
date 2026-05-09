@@ -360,6 +360,8 @@ func ManualCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionManual, EntryID: entry.ID, ProjectName: entry.ProjectName})
+
 			duration := entry.Duration()
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Created manual entry for %s", ui.Bold(entry.ProjectName)))

@@ -44,6 +44,8 @@ func PauseCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionPause, EntryID: running.ID, ProjectName: running.ProjectName})
+
 			duration := time.Since(running.StartTime)
 
 			ui.PrintSuccess(ui.EmojiStop, fmt.Sprintf("Paused tracking %s", ui.Bold(running.ProjectName)))
