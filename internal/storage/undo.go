@@ -70,9 +70,16 @@ func (d *Database) ClearLastAction() error {
 
 // UncompleteEntry clears the end_time of an entry, resuming it as a running timer.
 func (d *Database) UncompleteEntry(id int64) error {
-	_, err := d.db.Exec("UPDATE time_entries SET end_time = NULL WHERE id = ?", id)
+	result, err := d.db.Exec("UPDATE time_entries SET end_time = NULL WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("failed to uncomplete entry: %w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to uncomplete entry: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("entry %d not found", id)
 	}
 	return nil
 }

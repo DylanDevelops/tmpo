@@ -156,12 +156,12 @@ func DeleteCmd() *cobra.Command {
 			}
 
 			// Delete from database
-			db.SaveLastAction(storage.UndoAction{Type: storage.ActionDelete, ProjectName: selectedEntry.ProjectName, Entry: selectedEntry})
-
 			if err := db.DeleteTimeEntry(selectedEntry.ID); err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)
 			}
+
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionDelete, ProjectName: selectedEntry.ProjectName, Entry: selectedEntry})
 
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, "Entry deleted successfully")

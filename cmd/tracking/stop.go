@@ -37,13 +37,13 @@ func StopCmd() *cobra.Command {
 				os.Exit(0)
 			}
 
-			db.SaveLastAction(storage.UndoAction{Type: storage.ActionStop, EntryID: running.ID, ProjectName: running.ProjectName})
-
 			err = db.StopEntry(running.ID)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)
 			}
+
+			db.SaveLastAction(storage.UndoAction{Type: storage.ActionStop, EntryID: running.ID, ProjectName: running.ProjectName})
 
 			duration := time.Since(running.StartTime)
 
