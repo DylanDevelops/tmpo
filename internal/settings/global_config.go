@@ -28,6 +28,9 @@ func DefaultGlobalConfig() *GlobalConfig {
 	}
 }
 
+// GetGlobalConfigPath returns the path to the global config file. If
+// the TMPO_DEV environment variable is set to 1 or true, a
+// developer-specific config path is returned.
 func GetGlobalConfigPath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -42,6 +45,8 @@ func GetGlobalConfigPath() (string, error) {
 	return filepath.Join(tmpoDir, "config.yaml"), nil
 }
 
+// LoadGlobalConfig loads the global config from disk. If the config
+// file does not exist the default config is returned.
 func LoadGlobalConfig() (*GlobalConfig, error) {
 	configPath, err := GetGlobalConfigPath()
 	if err != nil {
@@ -69,6 +74,8 @@ func LoadGlobalConfig() (*GlobalConfig, error) {
 	return &config, nil
 }
 
+// Save writes the GlobalConfig to the config file, creating the
+// config directory if necessary.
 func (gc *GlobalConfig) Save() error {
 	configPath, err := GetGlobalConfigPath()
 	if err != nil {
@@ -92,7 +99,8 @@ func (gc *GlobalConfig) Save() error {
 	return nil
 }
 
-// GetDisplayTimezone returns the user's configured timezone or local timezone as fallback
+// GetDisplayTimezone returns the user's configured timezone or the
+// local timezone as a fallback.
 func GetDisplayTimezone() *time.Location {
 	cfg, err := LoadGlobalConfig()
 	if err != nil || cfg.Timezone == "" {
@@ -107,11 +115,14 @@ func GetDisplayTimezone() *time.Location {
 	return loc
 }
 
-// ToDisplayTime converts a UTC time to the user's display timezone
+// ToDisplayTime converts the provided time to the user's display
+// timezone.
 func ToDisplayTime(t time.Time) time.Time {
 	return t.In(GetDisplayTimezone())
 }
 
+// FormatTime formats t according to the user's configured time
+// format. Falls back to 12-hour format "3:04 PM".
 func FormatTime(t time.Time) string {
 	t = ToDisplayTime(t)
 
@@ -127,6 +138,8 @@ func FormatTime(t time.Time) string {
 	return t.Format("3:04 PM")
 }
 
+// FormatTimePadded formats t with a padded hour for 12-hour formats
+// ("03:04 PM") or returns the 24-hour format when configured.
 func FormatTimePadded(t time.Time) string {
 	t = ToDisplayTime(t)
 
@@ -142,6 +155,8 @@ func FormatTimePadded(t time.Time) string {
 	return t.Format("03:04 PM")
 }
 
+// FormatDate formats t according to the user's configured date
+// format. Defaults to "01/02/2006" (MM/DD/YYYY).
 func FormatDate(t time.Time) string {
 	t = ToDisplayTime(t)
 
@@ -162,6 +177,7 @@ func FormatDate(t time.Time) string {
 	}
 }
 
+// FormatDateDashed formats t using dashes between date components.
 func FormatDateDashed(t time.Time) string {
 	t = ToDisplayTime(t)
 
@@ -182,20 +198,28 @@ func FormatDateDashed(t time.Time) string {
 	}
 }
 
+// FormatDateTime returns the date and time formatted according to
+// user preferences.
 func FormatDateTime(t time.Time) string {
 	return FormatDate(t) + " " + FormatTime(t)
 }
 
+// FormatDateTimeDashed returns the dashed date and time formatted
+// according to user preferences.
 func FormatDateTimeDashed(t time.Time) string {
 	return FormatDateDashed(t) + " " + FormatTime(t)
 }
 
+// FormatDateLong returns a long human-readable date string like
+// "Mon, Jan 2, 2006".
 func FormatDateLong(t time.Time) string {
 	t = ToDisplayTime(t)
 
 	return t.Format("Mon, Jan 2, 2006")
 }
 
+// FormatDateTimeLong returns a long human-readable date/time string
+// honoring the user's time format preference.
 func FormatDateTimeLong(t time.Time) string {
 	t = ToDisplayTime(t)
 
