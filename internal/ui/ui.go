@@ -160,11 +160,15 @@ func FormatFileSize(bytes int64) string {
 }
 
 func FormatDuration(d time.Duration) string {
-	hours := int(d.Hours())
-	minutes := int(d.Minutes()) % 60
-	seconds := int(d.Seconds()) % 60
+	totalSeconds := int(d.Seconds())
+	days := totalSeconds / 86400
+	hours := (totalSeconds % 86400) / 3600
+	minutes := (totalSeconds % 3600) / 60
+	seconds := totalSeconds % 60
 
-	if hours > 0 {
+	if days > 0 {
+		return fmt.Sprintf("%dd %dh %dm %ds", days, hours, minutes, seconds)
+	} else if hours > 0 {
 		return fmt.Sprintf("%dh %dm %ds", hours, minutes, seconds)
 	} else if minutes > 0 {
 		return fmt.Sprintf("%dm %ds", minutes, seconds)

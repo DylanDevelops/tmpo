@@ -206,9 +206,19 @@ func TestFormatDuration(t *testing.T) {
 			expected: "1s",
 		},
 		{
-			name:     "large duration",
+			name:     "large duration under 24h",
+			duration: 23*time.Hour + 45*time.Minute + 30*time.Second,
+			expected: "23h 45m 30s",
+		},
+		{
+			name:     "duration over 24h shows days",
 			duration: 25*time.Hour + 45*time.Minute + 30*time.Second,
-			expected: "25h 45m 30s",
+			expected: "1d 1h 45m 30s",
+		},
+		{
+			name:     "multi-day duration",
+			duration: 688*time.Hour + 30*time.Minute + 39*time.Second,
+			expected: "28d 16h 30m 39s",
 		},
 	}
 

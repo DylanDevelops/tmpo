@@ -68,7 +68,7 @@ func StatusCmd() *cobra.Command {
 
 			ui.PrintSuccess(ui.EmojiMilestone, fmt.Sprintf("Active Milestone: %s", ui.Bold(activeMilestone.Name)))
 			ui.PrintInfo(4, "Project", projectName)
-			ui.PrintInfo(4, "Started", settings.FormatTime(activeMilestone.StartTime))
+			ui.PrintInfo(4, "Started", settings.FormatDateTime(activeMilestone.StartTime))
 			ui.PrintInfo(4, "Duration", ui.FormatDuration(activeMilestone.Duration()))
 			ui.PrintInfo(4, "Entries", fmt.Sprintf("%d", len(entries)))
 			ui.PrintInfo(4, "Total Time", ui.FormatDuration(totalTime))
