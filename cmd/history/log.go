@@ -3,6 +3,7 @@ package history
 import (
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/project"
@@ -101,7 +102,7 @@ func LogCmd() *cobra.Command {
 			var totalDuration time.Duration
 			currentDate := ""
 
-			for _, entry := range entries {
+			for _, entry := range slices.Backward(entries) {
 				entryDate := settings.FormatDateLong(entry.StartTime)
 				if entryDate != currentDate {
 					if currentDate != "" {
