@@ -59,13 +59,20 @@ func TestToCSV(t *testing.T) {
 		// Verify header
 		assert.Equal(t, []string{"Project", "Start Time", "End Time", "Duration (hours)", "Description", "Milestone"}, records[0])
 
-		// Verify first entry
-		assert.Equal(t, "test-project", records[1][0])
+		// Verify entries are in chronological order
+		assert.Equal(t, "another-project", records[1][0])
 		assert.Equal(t, "2024-01-01 09:00:00", records[1][1])
 		assert.Equal(t, "2024-01-01 17:00:00", records[1][2])
-		assert.Equal(t, "8.00", records[1][3]) // 8 hours
-		assert.Equal(t, "Test work", records[1][4])
-		assert.Equal(t, "", records[1][5]) // No milestone
+		assert.Equal(t, "8.00", records[1][3])
+		assert.Equal(t, "More work", records[1][4])
+		assert.Equal(t, "", records[1][5])
+
+		assert.Equal(t, "test-project", records[2][0])
+		assert.Equal(t, "2024-01-01 09:00:00", records[2][1])
+		assert.Equal(t, "2024-01-01 17:00:00", records[2][2])
+		assert.Equal(t, "8.00", records[2][3])
+		assert.Equal(t, "Test work", records[2][4])
+		assert.Equal(t, "", records[2][5])
 	})
 
 	t.Run("handles running entries", func(t *testing.T) {
@@ -195,12 +202,18 @@ func TestToJson(t *testing.T) {
 		// Should have 2 entries
 		assert.Len(t, exportedEntries, 2)
 
-		// Verify first entry
-		assert.Equal(t, "test-project", exportedEntries[0].Project)
+		// Verify entries are in chronological order
+		assert.Equal(t, "another-project", exportedEntries[0].Project)
 		assert.Equal(t, "2024-01-01T09:00:00Z", exportedEntries[0].StartTime)
 		assert.Equal(t, "2024-01-01T17:00:00Z", exportedEntries[0].EndTime)
 		assert.Equal(t, 8.0, exportedEntries[0].Duration)
-		assert.Equal(t, "Test work", exportedEntries[0].Description)
+		assert.Equal(t, "More work", exportedEntries[0].Description)
+
+		assert.Equal(t, "test-project", exportedEntries[1].Project)
+		assert.Equal(t, "2024-01-01T09:00:00Z", exportedEntries[1].StartTime)
+		assert.Equal(t, "2024-01-01T17:00:00Z", exportedEntries[1].EndTime)
+		assert.Equal(t, 8.0, exportedEntries[1].Duration)
+		assert.Equal(t, "Test work", exportedEntries[1].Description)
 	})
 
 	t.Run("handles running entries", func(t *testing.T) {
