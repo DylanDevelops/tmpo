@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/settings"
@@ -27,7 +28,7 @@ func ToCSV(entries []*storage.TimeEntry, filename string, inUtc bool) error {
 		return fmt.Errorf("failed to write header: %w", err)
 	}
 
-	for _, entry := range entries {
+	for _, entry := range slices.Backward(entries) {
 		endTime := ""
 		if entry.EndTime != nil {
 			endTime = toCorrectCsvTimestamp(*entry.EndTime, inUtc)

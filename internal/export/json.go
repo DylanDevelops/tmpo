@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/settings"
@@ -22,7 +23,7 @@ type ExportEntry struct {
 func ToJson(entries []*storage.TimeEntry, filename string, inUtc bool) error {
 	var exportEntries []ExportEntry
 
-	for _, entry := range entries {
+	for _, entry := range slices.Backward(entries) {
 		export := ExportEntry{
 			Project:     entry.ProjectName,
 			StartTime:   toCorrectJsonTimestamp(entry.StartTime, inUtc),
