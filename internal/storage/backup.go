@@ -75,7 +75,7 @@ func (d *Database) CreateBackup() (*BackupInfo, error) {
 	}, nil
 }
 
-// ListBackups returns all backups sorted newest-first with display IDs assigned (1 = newest).
+// ListBackups returns all backups sorted oldest-first with display IDs assigned (1 = oldest).
 func ListBackups() ([]BackupInfo, error) {
 	backupDir, err := GetBackupDir()
 	if err != nil {
@@ -118,7 +118,7 @@ func ListBackups() ([]BackupInfo, error) {
 	}
 
 	sort.Slice(backups, func(i, j int) bool {
-		return backups[i].CreatedAt.After(backups[j].CreatedAt)
+		return backups[i].CreatedAt.Before(backups[j].CreatedAt)
 	})
 
 	for i := range backups {
