@@ -163,7 +163,7 @@ func TestListBackups_IgnoresNonDBFiles(t *testing.T) {
 	assert.Empty(t, backups)
 }
 
-func TestListBackups_SortedNewestFirst(t *testing.T) {
+func TestListBackups_SortedOldestFirst(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 	t.Setenv("USERPROFILE", tmpHome)
@@ -190,9 +190,9 @@ func TestListBackups_SortedNewestFirst(t *testing.T) {
 
 	assert.Equal(t, 1, backups[0].ID)
 	assert.Equal(t, 2, backups[1].ID)
-	assert.Equal(t, "tmpo-20260102-100000.db", backups[0].Filename)
-	assert.Equal(t, "tmpo-20260101-100000.db", backups[1].Filename)
-	assert.True(t, backups[0].CreatedAt.After(backups[1].CreatedAt))
+	assert.Equal(t, "tmpo-20260101-100000.db", backups[0].Filename)
+	assert.Equal(t, "tmpo-20260102-100000.db", backups[1].Filename)
+	assert.True(t, backups[0].CreatedAt.Before(backups[1].CreatedAt))
 }
 
 func TestCreateBackup(t *testing.T) {

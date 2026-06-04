@@ -36,7 +36,7 @@ func ListCmd() *cobra.Command {
 				ui.FormatBold, "ID", "Created", "Size", "Schema", ui.ColorReset)
 			fmt.Println()
 
-			for _, b := range backups {
+			for i, b := range backups {
 				var schemaTag string
 				if b.IsUpToDate {
 					schemaTag = fmt.Sprintf("%s%s v%d (current)%s", ui.ColorGreen, ui.EmojiSuccess, b.SchemaVersion, ui.ColorReset)
@@ -44,11 +44,17 @@ func ListCmd() *cobra.Command {
 					schemaTag = fmt.Sprintf("%s%s v%d (outdated)%s", ui.ColorYellow, ui.EmojiWarning, b.SchemaVersion, ui.ColorReset)
 				}
 
-				fmt.Printf("  %-4d  %-28s  %-8s  %s\n",
+				var latestTag string
+				if i == len(backups)-1 {
+					latestTag = fmt.Sprintf("  %s← latest%s", ui.ColorCyan, ui.ColorReset)
+				}
+
+				fmt.Printf("  %-4d  %-28s  %-8s  %s%s\n",
 					b.ID,
 					settings.FormatDateTime(b.CreatedAt),
 					ui.FormatFileSize(b.Size),
 					schemaTag,
+					latestTag,
 				)
 			}
 
