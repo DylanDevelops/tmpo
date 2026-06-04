@@ -102,7 +102,7 @@ func ManualCmd() *cobra.Command {
 					os.Exit(1)
 				}
 
-				projectInput = strings.TrimSpace(projectInput)
+				projectInput = ui.SanitizeSingleLine(projectInput)
 				if projectInput == "" {
 					projectName = projectHint
 				} else {
@@ -249,7 +249,7 @@ func ManualCmd() *cobra.Command {
 					os.Exit(1)
 				}
 
-				descVal = strings.TrimSpace(descVal)
+				descVal = ui.SanitizeSingleLine(descVal)
 				if descVal != "" {
 					description = descVal
 				}

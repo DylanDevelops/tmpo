@@ -36,7 +36,7 @@ func StartCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			milestoneName := args[0]
+			milestoneName := ui.SanitizeSingleLine(args[0])
 
 			// Check if there's already an active milestone
 			activeMilestone, err := db.GetActiveMilestoneForProject(projectName)
