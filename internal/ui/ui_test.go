@@ -164,6 +164,77 @@ func TestFormatFileSize(t *testing.T) {
 	}
 }
 
+func TestSanitizeSingleLine(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "plain string unchanged",
+			input:    "hello world",
+			expected: "hello world",
+		},
+		{
+			name:     "trims leading and trailing whitespace",
+			input:    "  hello world  ",
+			expected: "hello world",
+		},
+		{
+			name:     "replaces newline with space",
+			input:    "hello\nworld",
+			expected: "hello world",
+		},
+		{
+			name:     "replaces carriage return with space",
+			input:    "hello\rworld",
+			expected: "hello world",
+		},
+		{
+			name:     "replaces CRLF with space",
+			input:    "hello\r\nworld",
+			expected: "hello world",
+		},
+		{
+			name:     "replaces multiple newlines",
+			input:    "hello\n\nworld",
+			expected: "hello  world",
+		},
+		{
+			name:     "trims trailing newline",
+			input:    "hello\n",
+			expected: "hello",
+		},
+		{
+			name:     "trims leading newline",
+			input:    "\nhello",
+			expected: "hello",
+		},
+		{
+			name:     "empty string stays empty",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "only whitespace becomes empty",
+			input:    "   \n\t  ",
+			expected: "",
+		},
+		{
+			name:     "mixed newlines and spaces",
+			input:    "  something blah blah blah \n  ",
+			expected: "something blah blah blah",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := SanitizeSingleLine(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestFormatDuration(t *testing.T) {
 	tests := []struct {
 		name     string

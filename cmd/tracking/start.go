@@ -52,7 +52,7 @@ func StartCmd() *cobra.Command {
 
 			description := ""
 			if len(args) > 0 {
-				description = args[0]
+				description = ui.SanitizeSingleLine(args[0])
 			}
 
 			var hourlyRate *float64

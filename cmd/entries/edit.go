@@ -243,7 +243,7 @@ func EditCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			descriptionInput = strings.TrimSpace(descriptionInput)
+			descriptionInput = ui.SanitizeSingleLine(descriptionInput)
 			if descriptionInput == "" {
 				descriptionInput = currentDescription
 			}
