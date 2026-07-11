@@ -99,7 +99,7 @@ View your time tracking history.
 
 **Options:**
 
-- `--limit N` - Show N most recent entries (default: 20)
+- `--limit N` - Show N most recent entries (default: 10)
 - `--milestone "name"` - Filter entries by milestone name
 - `--project "name"` - Filter entries by project name
 - `--today` - Show only today's entries
@@ -135,6 +135,7 @@ Display statistics about your tracked time.
 tmpo stats          # All-time stats
 tmpo stats --today  # Today's stats
 tmpo stats --week   # This week's stats
+tmpo stats --month  # This month's stats
 tmpo stats --date "2026-01-15" # January 15th, 2026 entries
 ```
 

@@ -16,6 +16,7 @@ import (
 var (
 	statsToday bool
 	statsWeek  bool
+	statsMonth bool
 	statsDate  string
 )
 
@@ -63,6 +64,11 @@ func StatsCmd() *cobra.Command {
 				start = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).UTC().AddDate(0, 0, -weekday+1)
 				end = start.AddDate(0, 0, 7)
 				periodName = "This Week"
+			} else if statsMonth {
+				now := time.Now()
+				start = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()).UTC()
+				end = start.AddDate(0, 1, 0)
+				periodName = "This Month"
 			} else {
 				entries, err := db.GetEntries(0)
 				if err != nil {
@@ -86,6 +92,7 @@ func StatsCmd() *cobra.Command {
 
 	cmd.Flags().BoolVarP(&statsToday, "today", "t", false, "Show today's stats")
 	cmd.Flags().BoolVarP(&statsWeek, "week", "w", false, "Show this week's stats")
+	cmd.Flags().BoolVarP(&statsMonth, "month", "m", false, "Show this month's stats")
 	cmd.Flags().StringVarP(&statsDate, "date", "d", "", "Show stats for a specific date")
 
 	return cmd

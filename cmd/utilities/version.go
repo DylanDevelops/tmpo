@@ -2,6 +2,7 @@ package utilities
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -65,14 +66,16 @@ func GetChangelogUrl(version string) string {
 }
 
 func checkForUpdates() {
-	// Only check for released semantic versions.
+	if isUpdateCheckDisabled() {
+		return
+	}
+
 	if !isReleaseVersion(Version) {
 		return
 	}
 
 	updateInfo, err := update.CheckForUpdate(Version)
 	if err != nil {
-		// Silently fail and don't bother the user with network errors
 		return
 	}
 
@@ -85,4 +88,13 @@ func checkForUpdates() {
 
 func isReleaseVersion(version string) bool {
 	return releaseVersionRegex.MatchString(version)
+}
+
+func isUpdateCheckDisabled() bool {
+	switch strings.ToLower(os.Getenv("TMPO_NO_UPDATE_CHECK")) {
+	case "1", "true", "yes":
+		return true
+	default:
+		return false
+	}
 }
