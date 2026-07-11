@@ -319,6 +319,16 @@ func (d *Database) StopEntry(id int64) error {
 	return nil
 }
 
+func (d *Database) CancelEntry(id int64) error {
+	err := d.DeleteTimeEntry(id)
+
+	if err != nil {
+		return fmt.Errorf("failed to cancel time entry: %w", err)
+	}
+
+	return nil
+}
+
 func (d *Database) GetEntry(id int64) (*TimeEntry, error) {
 	var entry TimeEntry
 	var endTime sql.NullTime

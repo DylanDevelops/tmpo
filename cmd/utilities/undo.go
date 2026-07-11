@@ -12,6 +12,7 @@ import (
 
 var actionDescriptions = map[storage.ActionType]string{
 	storage.ActionStop:   "Stopped tracking",
+	storage.ActionCancel: "Cancelled tracking",
 	storage.ActionPause:  "Paused tracking",
 	storage.ActionStart:  "Started tracking",
 	storage.ActionResume: "Resumed tracking",
@@ -99,7 +100,7 @@ func applyUndo(db *storage.Database, action *storage.UndoAction) error {
 	case storage.ActionStart, storage.ActionResume, storage.ActionManual:
 		return db.DeleteTimeEntry(action.EntryID)
 
-	case storage.ActionDelete:
+	case storage.ActionDelete, storage.ActionCancel:
 		if action.Entry == nil {
 			return fmt.Errorf("no entry snapshot available to restore")
 		}
