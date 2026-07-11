@@ -17,6 +17,7 @@ var actionDescriptions = map[storage.ActionType]string{
 	storage.ActionResume: "Resumed tracking",
 	storage.ActionManual: "Created manual entry for",
 	storage.ActionDelete: "Deleted entry for",
+	storage.ActionEdit:   "Edited entry for",
 }
 
 func UndoCmd() *cobra.Command {
@@ -103,6 +104,12 @@ func applyUndo(db *storage.Database, action *storage.UndoAction) error {
 			return fmt.Errorf("no entry snapshot available to restore")
 		}
 		return db.RestoreDeletedEntry(action.Entry)
+
+	case storage.ActionEdit:
+		if action.Entry == nil {
+			return fmt.Errorf("no entry snapshot available to restore")
+		}
+		return db.UpdateTimeEntry(action.EntryID, action.Entry)
 
 	default:
 		return fmt.Errorf("unknown action type: %s", action.Type)

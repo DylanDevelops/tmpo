@@ -433,6 +433,13 @@ func EditCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			db.SaveLastAction(storage.UndoAction{
+				Type:        storage.ActionEdit,
+				EntryID:     selectedEntry.ID,
+				ProjectName: selectedEntry.ProjectName,
+				Entry:       selectedEntry,
+			})
+
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, "Entry updated successfully")
 			ui.NewlineBelow()
