@@ -34,6 +34,7 @@ func StopCmd() *cobra.Command {
 
 			if running == nil {
 				ui.PrintWarning(ui.EmojiWarning, "No active time tracking session.")
+				ui.NewlineBelow()
 				os.Exit(0)
 			}
 

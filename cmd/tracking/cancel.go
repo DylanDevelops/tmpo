@@ -31,6 +31,7 @@ func CancelCmd() *cobra.Command {
 
 			if running == nil {
 				ui.PrintWarning(ui.EmojiWarning, "No active time tracking session.")
+				ui.NewlineBelow()
 				os.Exit(0)
 			}
 
@@ -47,7 +48,7 @@ func CancelCmd() *cobra.Command {
 			})
 
 			ui.PrintSuccess(ui.EmojiCancel, fmt.Sprintf("Cancelled tracking %s", ui.Bold(running.ProjectName)))
-			ui.PrintMuted(2, "Run 'tmpo start' to create a new time tracking session.")
+			ui.PrintMuted(4, "If this was a mistake, run `tmpo undo`.")
 
 			ui.NewlineBelow()
 		},
