@@ -42,8 +42,8 @@ func CancelCmd() *cobra.Command {
 
 			db.SaveLastAction(storage.UndoAction{
 				Type:        storage.ActionCancel,
-				EntryID:     running.ID,
 				ProjectName: running.ProjectName,
+				Entry:       running,
 			})
 
 			ui.PrintSuccess(ui.EmojiCancel, fmt.Sprintf("Cancelled tracking %s", ui.Bold(running.ProjectName)))
