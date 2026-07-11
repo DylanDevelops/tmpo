@@ -19,7 +19,14 @@ tmpo is a local-first CLI tool that stores time tracking data on your machine. H
 
 - All time entries are stored in a SQLite database at `$HOME/.tmpo/tmpo.db`
 - The database is only accessible to your user account (standard file permissions apply)
-- No data is transmitted over the network
+- Your time tracking data is never transmitted over the network
+
+### **Update Checks**
+
+- When you run `tmpo version`, tmpo performs a check for newer releases by making a read-only request to the GitHub API (`https://api.github.com/repos/DylanDevelops/tmpo/releases/latest`)
+- Only the latest release metadata is fetched; **no time tracking data, configuration, or personal information is sent**
+- The request fails silently if you are offline, so it never blocks or interrupts your workflow
+- You can disable this network request entirely by setting the `TMPO_NO_UPDATE_CHECK` environment variable to `1`, `true`, or `yes`
 
 ### **Configuration Files**
 

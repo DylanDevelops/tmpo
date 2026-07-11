@@ -1,10 +1,84 @@
 package utilities
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestIsUpdateCheckDisabled(t *testing.T) {
+	tests := []struct {
+		name     string
+		envValue string
+		setEnv   bool
+		expected bool
+	}{
+		{
+			name:     "unset variable is enabled",
+			setEnv:   false,
+			expected: false,
+		},
+		{
+			name:     "empty value is enabled",
+			envValue: "",
+			setEnv:   true,
+			expected: false,
+		},
+		{
+			name:     "1 disables",
+			envValue: "1",
+			setEnv:   true,
+			expected: true,
+		},
+		{
+			name:     "true disables",
+			envValue: "true",
+			setEnv:   true,
+			expected: true,
+		},
+		{
+			name:     "yes disables",
+			envValue: "yes",
+			setEnv:   true,
+			expected: true,
+		},
+		{
+			name:     "uppercase TRUE disables",
+			envValue: "TRUE",
+			setEnv:   true,
+			expected: true,
+		},
+		{
+			name:     "0 does not disable",
+			envValue: "0",
+			setEnv:   true,
+			expected: false,
+		},
+		{
+			name:     "arbitrary value does not disable",
+			envValue: "maybe",
+			setEnv:   true,
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setEnv {
+				t.Setenv("TMPO_NO_UPDATE_CHECK", tt.envValue)
+			} else {
+				// Ensure a deterministic "unset" state regardless of the
+				// ambient environment. t.Setenv registers cleanup that
+				// restores the original value after the subtest.
+				t.Setenv("TMPO_NO_UPDATE_CHECK", "placeholder")
+				os.Unsetenv("TMPO_NO_UPDATE_CHECK")
+			}
+			result := isUpdateCheckDisabled()
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
 
 func TestGetFormattedDate(t *testing.T) {
 	tests := []struct {
