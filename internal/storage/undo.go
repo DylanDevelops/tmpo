@@ -16,6 +16,7 @@ const (
 	ActionResume ActionType = "resume"
 	ActionDelete ActionType = "delete"
 	ActionManual ActionType = "manual"
+	ActionEdit   ActionType = "edit"
 )
 
 const lastActionKey = "last_action"
