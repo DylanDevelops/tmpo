@@ -2,6 +2,7 @@ package utilities
 
 import (
 	"testing"
+	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,7 @@ func TestUndoActionDescription(t *testing.T) {
 		{storage.ActionResume, "Resumed tracking"},
 		{storage.ActionManual, "Created manual entry for"},
 		{storage.ActionDelete, "Deleted entry for"},
+		{storage.ActionEdit, "Edited entry for"},
 	}
 
 	for _, tt := range tests {
@@ -89,6 +91,47 @@ func TestApplyUndo_Delete_ErrorWhenNoSnapshot(t *testing.T) {
 	err := applyUndo(db, action)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "no entry snapshot")
+}
+
+func TestApplyUndo_Edit_ErrorWhenNoSnapshot(t *testing.T) {
+	db := setupUndoTestDB(t)
+
+	action := &storage.UndoAction{Type: storage.ActionEdit, ProjectName: "proj", Entry: nil}
+	err := applyUndo(db, action)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no entry snapshot")
+}
+
+func TestApplyUndo_Edit_RestoresOriginalEntry(t *testing.T) {
+	db := setupUndoTestDB(t)
+
+	// Create and stop an entry, then capture its pre-edit snapshot.
+	orig, err := db.CreateEntry("proj", "before", nil, nil)
+	require.NoError(t, err)
+	require.NoError(t, db.StopEntry(orig.ID))
+
+	before, err := db.GetEntry(orig.ID)
+	require.NoError(t, err)
+
+	// Apply an edit that changes several fields.
+	edited := *before
+	newStart := before.StartTime.Add(-time.Hour)
+	newEnd := before.EndTime.Add(time.Hour)
+	edited.StartTime = newStart
+	edited.EndTime = &newEnd
+	edited.Description = "after"
+	require.NoError(t, db.UpdateTimeEntry(edited.ID, &edited))
+
+	// Undo should restore the original values.
+	action := &storage.UndoAction{Type: storage.ActionEdit, EntryID: before.ID, ProjectName: "proj", Entry: before}
+	require.NoError(t, applyUndo(db, action))
+
+	restored, err := db.GetEntry(orig.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "before", restored.Description)
+	assert.True(t, restored.StartTime.Equal(before.StartTime), "start time should be restored")
+	require.NotNil(t, restored.EndTime)
+	assert.True(t, restored.EndTime.Equal(*before.EndTime), "end time should be restored")
 }
 
 func TestApplyUndo_UnknownType_ReturnsError(t *testing.T) {

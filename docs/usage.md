@@ -433,14 +433,15 @@ Revert the most recent time-tracking action in case of a mistake. A single confi
 
 **Supported actions:**
 
-| Action        | What undo does                                    |
-|---------------|---------------------------------------------------|
-| `tmpo start`  | Deletes the entry that was just created           |
-| `tmpo stop`   | Re-opens the stopped entry as a running timer     |
-| `tmpo pause`  | Re-opens the paused entry as a running timer      |
-| `tmpo resume` | Deletes the new entry that was created to resume  |
-| `tmpo manual` | Deletes the manually created entry                |
-| `tmpo delete` | Restores the deleted entry with its original data |
+| Action        | What undo does                                         |
+|---------------|--------------------------------------------------------|
+| `tmpo start`  | Deletes the entry that was just created                |
+| `tmpo stop`   | Re-opens the stopped entry as a running timer          |
+| `tmpo pause`  | Re-opens the paused entry as a running timer           |
+| `tmpo resume` | Deletes the new entry that was created to resume       |
+| `tmpo manual` | Deletes the manually created entry                     |
+| `tmpo delete` | Restores the deleted entry with its original data      |
+| `tmpo edit`   | Restores the previous version of the edited time entry |
 
 **Examples:**
 
