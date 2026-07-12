@@ -37,6 +37,7 @@ const (
 const (
 	EmojiStart     = "✨"
 	EmojiStop      = "🛑"
+	EmojiCancel    = "🚫"
 	EmojiStatus    = "⏱️"
 	EmojiStats     = "📊"
 	EmojiLog       = "📝"

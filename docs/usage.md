@@ -34,6 +34,14 @@ Stop the currently running time entry.
 tmpo stop
 ```
 
+### `tmpo cancel`
+
+Cancel the currently running time entry.
+
+```bash
+tmpo cancel
+```
+
 ### `tmpo pause`
 
 Pause the currently running time entry. This is useful for taking quick breaks without losing context. The paused session can be resumed with `tmpo resume`.

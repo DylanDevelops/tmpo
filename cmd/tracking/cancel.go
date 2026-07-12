@@ -3,18 +3,17 @@ package tracking
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
 )
 
-func StopCmd() *cobra.Command {
+func CancelCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "stop",
-		Short: "Stop tracking time",
-		Long:  `Stop the currently running time tracking session.`,
+		Use:   "cancel",
+		Short: "Cancel the running time entry",
+		Long:  "Stops and cancels the running time tracking session.",
 		Run: func(cmd *cobra.Command, args []string) {
 			ui.NewlineAbove()
 
@@ -38,18 +37,20 @@ func StopCmd() *cobra.Command {
 				os.Exit(0)
 			}
 
-			err = db.StopEntry(running.ID)
+			err = db.CancelEntry(running.ID)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				os.Exit(1)
 			}
 
-			db.SaveLastAction(storage.UndoAction{Type: storage.ActionStop, EntryID: running.ID, ProjectName: running.ProjectName})
+			db.SaveLastAction(storage.UndoAction{
+				Type:        storage.ActionCancel,
+				ProjectName: running.ProjectName,
+				Entry:       running,
+			})
 
-			duration := time.Since(running.StartTime)
-
-			ui.PrintSuccess(ui.EmojiStop, fmt.Sprintf("Stopped tracking %s", ui.Bold(running.ProjectName)))
-			ui.PrintInfo(4, ui.Bold("Total Duration"), ui.FormatDuration(duration))
+			ui.PrintSuccess(ui.EmojiCancel, fmt.Sprintf("Cancelled tracking %s", ui.Bold(running.ProjectName)))
+			ui.PrintMuted(4, "If this was a mistake, run `tmpo undo`.")
 
 			ui.NewlineBelow()
 		},

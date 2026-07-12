@@ -291,6 +291,23 @@ func TestStopEntry(t *testing.T) {
 	assert.NotNil(t, stopped.EndTime)
 }
 
+func TestCancelEntry(t *testing.T) {
+	db := setupTestDB(t)
+	defer db.Close()
+
+	entry, err := db.CreateEntry("test-project", "test", nil, nil)
+	assert.NoError(t, err)
+	assert.NotNil(t, entry)
+
+	err = db.CancelEntry(entry.ID)
+	assert.NoError(t, err)
+
+	// Verify entry was cancelled
+	cancelled, err := db.GetEntry(entry.ID)
+	assert.Error(t, err)
+	assert.Nil(t, cancelled)
+}
+
 func TestGetEntry(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()

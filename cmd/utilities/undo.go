@@ -12,6 +12,7 @@ import (
 
 var actionDescriptions = map[storage.ActionType]string{
 	storage.ActionStop:   "Stopped tracking",
+	storage.ActionCancel: "Cancelled tracking",
 	storage.ActionPause:  "Paused tracking",
 	storage.ActionStart:  "Started tracking",
 	storage.ActionResume: "Resumed tracking",
@@ -87,21 +88,23 @@ func undoActionDescription(action *storage.UndoAction) string {
 func applyUndo(db *storage.Database, action *storage.UndoAction) error {
 	switch action.Type {
 	case storage.ActionStop, storage.ActionPause:
-		running, err := db.GetRunningEntry()
-		if err != nil {
-			return fmt.Errorf("checking for running entry: %w", err)
-		}
-		if running != nil {
-			return fmt.Errorf("a timer is already running for %s — stop it first with 'tmpo stop'", running.ProjectName)
+		if err := ensureNoRunningTimer(db); err != nil {
+			return err
 		}
 		return db.UncompleteEntry(action.EntryID)
 
 	case storage.ActionStart, storage.ActionResume, storage.ActionManual:
 		return db.DeleteTimeEntry(action.EntryID)
 
-	case storage.ActionDelete:
+	case storage.ActionDelete, storage.ActionCancel:
 		if action.Entry == nil {
 			return fmt.Errorf("no entry snapshot available to restore")
+		}
+
+		if action.Entry.EndTime == nil {
+			if err := ensureNoRunningTimer(db); err != nil {
+				return err
+			}
 		}
 		return db.RestoreDeletedEntry(action.Entry)
 
@@ -114,4 +117,15 @@ func applyUndo(db *storage.Database, action *storage.UndoAction) error {
 	default:
 		return fmt.Errorf("unknown action type: %s", action.Type)
 	}
+}
+
+func ensureNoRunningTimer(db *storage.Database) error {
+	running, err := db.GetRunningEntry()
+	if err != nil {
+		return fmt.Errorf("checking for running entry: %w", err)
+	}
+	if running != nil {
+		return fmt.Errorf("a timer is already running for %s — stop it first with 'tmpo stop'", running.ProjectName)
+	}
+	return nil
 }
