@@ -23,6 +23,8 @@ func CancelCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			defer db.Close()
+
 			running, err := db.GetRunningEntry()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
