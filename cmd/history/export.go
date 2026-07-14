@@ -55,18 +55,37 @@ func ExportCmd() *cobra.Command {
 				}
 				entries, err = db.GetEntriesByMilestone(projectName, exportMilestone)
 			} else if exportToday {
-				start := time.Now().Truncate(24 * time.Hour)
-				end := start.Add(24 * time.Hour)
+				tz := settings.GetDisplayTimezone()
+				if exportUtc {
+					tz = time.UTC
+				}
+
+				now := time.Now().In(tz)
+				start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, tz)
+				end := start.AddDate(0, 0, 1)
+
 				entries, err = db.GetEntriesByDateRange(start, end)
 			} else if exportWeek {
-				now := time.Now()
+				tz := settings.GetDisplayTimezone()
+				if exportUtc {
+					tz = time.UTC
+				}
+
+				now := time.Now().In(tz)
 				weekday := int(now.Weekday())
 				if weekday == 0 {
 					weekday = 7 // sunday
 				}
 
-				start := now.AddDate(0, 0, -weekday+1).Truncate(24 * time.Hour)
+				firstOfWeek := now.AddDate(0, 0, -weekday+1)
+				start := time.Date(
+					firstOfWeek.Year(),
+					firstOfWeek.Month(),
+					firstOfWeek.Day(),
+					0, 0, 0, 0,
+					tz)
 				end := start.AddDate(0, 0, 7)
+
 				entries, err = db.GetEntriesByDateRange(start, end)
 			} else if exportProject != "" {
 				entries, err = db.GetEntriesByProject(exportProject)
