@@ -62,7 +62,7 @@ func ExportCmd() *cobra.Command {
 
 				now := time.Now().In(tz)
 				start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, tz)
-				end := start.Add(24 * time.Hour)
+				end := start.AddDate(0, 0, 1)
 
 				entries, err = db.GetEntriesByDateRange(start, end)
 			} else if exportWeek {
