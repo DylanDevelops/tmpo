@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DylanDevelops/tmpo/internal/fsperm"
 	_ "modernc.org/sqlite"
 )
 
@@ -46,7 +47,7 @@ func (d *Database) CreateBackup() (*BackupInfo, error) {
 		return nil, err
 	}
 
-	if err := os.MkdirAll(backupDir, 0755); err != nil {
+	if err := fsperm.SecureDir(backupDir); err != nil {
 		return nil, fmt.Errorf("failed to create backups directory: %w", err)
 	}
 
@@ -57,6 +58,10 @@ func (d *Database) CreateBackup() (*BackupInfo, error) {
 	escapedPath := strings.ReplaceAll(destPath, "'", "''")
 	if _, err = d.db.Exec(fmt.Sprintf("VACUUM INTO '%s'", escapedPath)); err != nil {
 		return nil, fmt.Errorf("failed to create backup: %w", err)
+	}
+
+	if err := fsperm.SecureFile(destPath); err != nil {
+		return nil, err
 	}
 
 	info, err := os.Stat(destPath)
@@ -149,6 +154,10 @@ func RestoreBackup(backupPath string) error {
 
 	if _, err := io.Copy(dst, src); err != nil {
 		return fmt.Errorf("failed to restore backup: %w", err)
+	}
+
+	if err := fsperm.SecureFile(dbPath); err != nil {
+		return err
 	}
 
 	return nil

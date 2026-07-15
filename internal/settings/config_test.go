@@ -3,6 +3,7 @@ package settings
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -330,4 +331,19 @@ func TestFindAndLoad(t *testing.T) {
 		actualPath, _ := filepath.EvalSymlinks(path)
 		assert.Equal(t, expectedPath, actualPath)
 	})
+}
+
+func TestCreateWithTemplate_TmporcRemainsGroupReadable(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX permissions are not enforced on Windows")
+	}
+
+	dir := t.TempDir()
+	t.Chdir(dir)
+
+	assert.NoError(t, CreateWithTemplate("demo", 0, "", ""))
+
+	fileInfo, err := os.Stat(filepath.Join(dir, ".tmporc"))
+	assert.NoError(t, err)
+	assert.Equal(t, os.FileMode(0644), fileInfo.Mode().Perm())
 }

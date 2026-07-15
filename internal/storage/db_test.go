@@ -2,9 +2,13 @@ package storage
 
 import (
 	"database/sql"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
+	"github.com/DylanDevelops/tmpo/internal/fsperm"
 	"github.com/stretchr/testify/assert"
 	_ "modernc.org/sqlite"
 )
@@ -641,4 +645,57 @@ func floatPtr(f float64) *float64 {
 
 func timePtr(t time.Time) *time.Time {
 	return &t
+}
+
+func TestInitialize_SetsPrivatePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX permissions are not enforced on Windows")
+	}
+
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	db, err := Initialize()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	tmpoDir := filepath.Join(tmpHome, ".tmpo")
+	dirInfo, err := os.Stat(tmpoDir)
+	assert.NoError(t, err)
+	assert.Equal(t, fsperm.DirPerm, dirInfo.Mode().Perm())
+
+	dbInfo, err := os.Stat(filepath.Join(tmpoDir, "tmpo.db"))
+	assert.NoError(t, err)
+	assert.Equal(t, fsperm.FilePerm, dbInfo.Mode().Perm())
+}
+
+func TestInitialize_RemediatesLoosePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX permissions are not enforced on Windows")
+	}
+
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	// Simulate an install created before permissions were enforced.
+	tmpoDir := filepath.Join(tmpHome, ".tmpo")
+	assert.NoError(t, os.MkdirAll(tmpoDir, 0755))
+	dbPath := filepath.Join(tmpoDir, "tmpo.db")
+	assert.NoError(t, os.WriteFile(dbPath, []byte(""), 0644))
+
+	db, err := Initialize()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	dirInfo, err := os.Stat(tmpoDir)
+	assert.NoError(t, err)
+	assert.Equal(t, fsperm.DirPerm, dirInfo.Mode().Perm())
+
+	dbInfo, err := os.Stat(dbPath)
+	assert.NoError(t, err)
+	assert.Equal(t, fsperm.FilePerm, dbInfo.Mode().Perm())
 }

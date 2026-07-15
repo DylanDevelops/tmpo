@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DylanDevelops/tmpo/internal/fsperm"
 	_ "modernc.org/sqlite"
 )
 
@@ -33,7 +34,7 @@ func Initialize() (*Database, error) {
 		return nil, err
 	}
 
-	if err := os.MkdirAll(tmpoDir, 0755); err != nil {
+	if err := fsperm.SecureDir(tmpoDir); err != nil {
 		return nil, fmt.Errorf("failed to create .tmpo directory: %w", err)
 	}
 
@@ -110,6 +111,15 @@ func Initialize() (*Database, error) {
 
 	if err := database.runMigrations(); err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	if err := fsperm.SecureFile(dbPath); err != nil {
+		return nil, err
+	}
+	for _, suffix := range []string{"-wal", "-shm"} {
+		if err := fsperm.SecureFile(dbPath + suffix); err != nil {
+			return nil, err
+		}
 	}
 
 	return database, nil

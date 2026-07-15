@@ -3,8 +3,10 @@ package settings
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
+	"github.com/DylanDevelops/tmpo/internal/fsperm"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -446,4 +448,25 @@ func TestGetProjectsPath(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "projects.yaml", filepath.Base(path))
 	})
+}
+
+func TestProjectsRegistrySave_SetsPrivatePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX permissions are not enforced on Windows")
+	}
+
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	reg := &ProjectsRegistry{Projects: []GlobalProject{}}
+	assert.NoError(t, reg.Save())
+
+	path, err := GetProjectsPath()
+	assert.NoError(t, err)
+
+	fileInfo, err := os.Stat(path)
+	assert.NoError(t, err)
+	assert.Equal(t, fsperm.FilePerm, fileInfo.Mode().Perm())
 }

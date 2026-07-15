@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/currency"
+	"github.com/DylanDevelops/tmpo/internal/fsperm"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -83,7 +84,7 @@ func (gc *GlobalConfig) Save() error {
 	}
 
 	tmpoDir := filepath.Dir(configPath)
-	if err := os.MkdirAll(tmpoDir, 0755); err != nil {
+	if err := fsperm.SecureDir(tmpoDir); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
@@ -92,8 +93,12 @@ func (gc *GlobalConfig) Save() error {
 		return fmt.Errorf("failed to marshal global config: %w", err)
 	}
 
-	if err := os.WriteFile(configPath, data, 0644); err != nil {
+	if err := os.WriteFile(configPath, data, fsperm.FilePerm); err != nil {
 		return fmt.Errorf("failed to write global config: %w", err)
+	}
+
+	if err := fsperm.SecureFile(configPath); err != nil {
+		return err
 	}
 
 	return nil
