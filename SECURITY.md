@@ -6,8 +6,8 @@ We release security updates for the following versions of tmpo:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.8.x   | :white_check_mark: |
-| < 0.8.0 | :x:                |
+| 0.9.x   | :white_check_mark: |
+| < 0.9.0 | :x:                |
 
 We recommend always using the latest stable release to ensure you have the most recent security patches.
 
@@ -18,7 +18,7 @@ tmpo is a local-first CLI tool that stores time tracking data on your machine. H
 ### **Local Data Storage**
 
 - All time entries are stored in a SQLite database at `$HOME/.tmpo/tmpo.db`
-- The database is only accessible to your user account (standard file permissions apply)
+- The `~/.tmpo` directory is created with owner-only permissions (`0700`), and the database, backups, and config files are created with owner-only read/write (`0600`), so other local users on the same machine cannot read your time tracking data
 - Your time tracking data is never transmitted over the network
 
 ### **Update Checks**
