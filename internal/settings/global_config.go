@@ -8,6 +8,7 @@ import (
 
 	"github.com/DylanDevelops/tmpo/internal/currency"
 	"github.com/DylanDevelops/tmpo/internal/fsperm"
+	"github.com/DylanDevelops/tmpo/internal/paths"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -33,14 +34,9 @@ func DefaultGlobalConfig() *GlobalConfig {
 // the TMPO_DEV environment variable is set to 1 or true, a
 // developer-specific config path is returned.
 func GetGlobalConfigPath() (string, error) {
-	home, err := os.UserHomeDir()
+	tmpoDir, err := paths.TmpoDir()
 	if err != nil {
-		return "", fmt.Errorf("failed to get home directory: %w", err)
-	}
-
-	tmpoDir := filepath.Join(home, ".tmpo")
-	if devMode := os.Getenv("TMPO_DEV"); devMode == "1" || devMode == "true" {
-		tmpoDir = filepath.Join(home, ".tmpo-dev")
+		return "", err
 	}
 
 	return filepath.Join(tmpoDir, "config.yaml"), nil

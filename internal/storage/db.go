@@ -3,12 +3,12 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/fsperm"
+	"github.com/DylanDevelops/tmpo/internal/paths"
 	_ "modernc.org/sqlite"
 )
 
@@ -17,15 +17,7 @@ type Database struct {
 }
 
 func getTmpoDir() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to get home directory: %w", err)
-	}
-	tmpoDir := filepath.Join(homeDir, ".tmpo")
-	if devMode := os.Getenv("TMPO_DEV"); devMode == "1" || devMode == "true" {
-		tmpoDir = filepath.Join(homeDir, ".tmpo-dev")
-	}
-	return tmpoDir, nil
+	return paths.TmpoDir()
 }
 
 func Initialize() (*Database, error) {

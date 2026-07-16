@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/DylanDevelops/tmpo/internal/fsperm"
+	"github.com/DylanDevelops/tmpo/internal/paths"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -25,14 +26,9 @@ type ProjectsRegistry struct {
 
 // GetProjectsPath returns the path to the global projects registry file
 func GetProjectsPath() (string, error) {
-	home, err := os.UserHomeDir()
+	tmpoDir, err := paths.TmpoDir()
 	if err != nil {
-		return "", fmt.Errorf("failed to get home directory: %w", err)
-	}
-
-	tmpoDir := filepath.Join(home, ".tmpo")
-	if devMode := os.Getenv("TMPO_DEV"); devMode == "1" || devMode == "true" {
-		tmpoDir = filepath.Join(home, ".tmpo-dev")
+		return "", err
 	}
 
 	return filepath.Join(tmpoDir, "projects.yaml"), nil
