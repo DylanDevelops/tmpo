@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/DylanDevelops/tmpo/internal/fsperm"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -74,7 +75,7 @@ func (pr *ProjectsRegistry) Save() error {
 	}
 
 	tmpoDir := filepath.Dir(projectsPath)
-	if err := os.MkdirAll(tmpoDir, 0755); err != nil {
+	if err := fsperm.SecureDir(tmpoDir); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
@@ -83,8 +84,12 @@ func (pr *ProjectsRegistry) Save() error {
 		return fmt.Errorf("failed to marshal projects registry: %w", err)
 	}
 
-	if err := os.WriteFile(projectsPath, data, 0644); err != nil {
+	if err := os.WriteFile(projectsPath, data, fsperm.FilePerm); err != nil {
 		return fmt.Errorf("failed to write projects registry: %w", err)
+	}
+
+	if err := fsperm.SecureFile(projectsPath); err != nil {
+		return err
 	}
 
 	return nil

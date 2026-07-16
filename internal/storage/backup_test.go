@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/DylanDevelops/tmpo/internal/fsperm"
 	"github.com/stretchr/testify/assert"
 	_ "modernc.org/sqlite"
 )
@@ -256,4 +258,53 @@ func TestRestoreBackup(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, entries, 1)
 	assert.Equal(t, "before backup", entries[0].Description)
+}
+
+func TestCreateBackup_SetsPrivatePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX permissions are not enforced on Windows")
+	}
+
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	db, err := Initialize()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	info, err := db.CreateBackup()
+	assert.NoError(t, err)
+
+	dirInfo, err := os.Stat(filepath.Join(tmpHome, ".tmpo", "backups"))
+	assert.NoError(t, err)
+	assert.Equal(t, fsperm.DirPerm, dirInfo.Mode().Perm())
+
+	fileInfo, err := os.Stat(info.Path)
+	assert.NoError(t, err)
+	assert.Equal(t, fsperm.FilePerm, fileInfo.Mode().Perm())
+}
+
+func TestRestoreBackup_SetsPrivatePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX permissions are not enforced on Windows")
+	}
+
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	db, err := Initialize()
+	assert.NoError(t, err)
+	info, err := db.CreateBackup()
+	assert.NoError(t, err)
+	assert.NoError(t, db.Close())
+
+	assert.NoError(t, RestoreBackup(info.Path))
+
+	dbInfo, err := os.Stat(filepath.Join(tmpHome, ".tmpo", "tmpo.db"))
+	assert.NoError(t, err)
+	assert.Equal(t, fsperm.FilePerm, dbInfo.Mode().Perm())
 }
