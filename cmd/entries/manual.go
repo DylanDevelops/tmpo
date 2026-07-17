@@ -59,9 +59,6 @@ func ManualCmd() *cobra.Command {
 			defer db.Close()
 
 			var hourlyRate *float64
-			if cfg, _, cfgErr := settings.FindAndLoad(); cfgErr == nil && cfg != nil && cfg.HourlyRate > 0 {
-				hourlyRate = &cfg.HourlyRate
-			}
 
 			todayDate := time.Now().Format(dateFormatLayout)
 
@@ -112,6 +109,11 @@ func ManualCmd() *cobra.Command {
 				if projectName == "" {
 					ui.PrintError(ui.EmojiError, "project name cannot be empty")
 					os.Exit(1)
+				}
+
+				hourlyRate = nil
+				if configRate, _, cfgErr := project.GetProjectConfig(projectName); cfgErr == nil && configRate != nil {
+					hourlyRate = configRate
 				}
 
 				// start date
