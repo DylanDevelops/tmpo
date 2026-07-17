@@ -101,8 +101,9 @@ brews:
   - name: tmpo
     repository:
       owner: DylanDevelops
-      name: homebrew-tmpo
+      name: homebrew-tap
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    directory: Formula
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
