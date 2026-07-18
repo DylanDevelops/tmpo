@@ -347,7 +347,7 @@ We appreciate packaging efforts for various package managers and distributions! 
 Distribution-specific packaging should be maintained outside this repository:
 
 - **Nix flakes and modules** - Contribute to [nixpkgs](https://github.com/NixOS/nixpkgs) or maintain in a separate repo
-- **Homebrew formulas** - Maintained in our custom tap repository at [`DylanDevelops/homebrew-tmpo`](https://github.com/DylanDevelops/homebrew-tmpo). Once `tmpo` meets the required repository popularity metrics, we will submit it to `homebrew-core`.
+- **Homebrew formulas** - Maintained in our custom tap repository at [`DylanDevelops/homebrew-tap`](https://github.com/DylanDevelops/homebrew-tap). Once `tmpo` meets the required repository popularity metrics, we will submit it to `homebrew-core`.
 - **Linux packages** - AUR (Arch), APT/RPM repos, Snap, Flatpak, etc.
 - **System configuration** - Systemd units, init scripts, etc.
 - **Other package managers** - Scoop (Windows), Chocolatey, etc.

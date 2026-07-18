@@ -12,9 +12,17 @@ This guide will walk you through installing tmpo on macOS.
 The easiest way to install tmpo on macOS is via [Homebrew](https://brew.sh/).
 
 ```bash
-brew tap DylanDevelops/tmpo
-brew install tmpo
+brew install DylanDevelops/tap/tmpo
 ```
+
+> [!NOTE]
+> Homebrew 6 and later require non-official taps to be trusted before
+> they can be installed (this is enabled by default). If you see a trust error,
+> run the following once, then re-run the install command above:
+>
+> ```bash
+> brew trust --tap DylanDevelops/tap
+> ```
 
 ### Verify Installation
 
