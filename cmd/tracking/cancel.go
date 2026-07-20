@@ -2,7 +2,6 @@ package tracking
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
@@ -14,13 +13,13 @@ func CancelCmd() *cobra.Command {
 		Use:   "cancel",
 		Short: "Cancel the running time entry",
 		Long:  "Stops and cancels the running time tracking session.",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -28,19 +27,19 @@ func CancelCmd() *cobra.Command {
 			running, err := db.GetRunningEntry()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if running == nil {
 				ui.PrintWarning(ui.EmojiWarning, "No active time tracking session.")
 				ui.NewlineBelow()
-				os.Exit(0)
+				return nil
 			}
 
 			err = db.CancelEntry(running.ID)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			db.SaveLastAction(storage.UndoAction{
@@ -53,6 +52,8 @@ func CancelCmd() *cobra.Command {
 			ui.PrintMuted(4, "If this was a mistake, run `tmpo undo`.")
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

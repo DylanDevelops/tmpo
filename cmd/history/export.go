@@ -29,13 +29,13 @@ func ExportCmd() *cobra.Command {
 		Use:   "export",
 		Short: "Export time entries",
 		Long:  `Export time tracking data to different formats.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -49,7 +49,7 @@ func ExportCmd() *cobra.Command {
 					detectedProject, err := project.DetectConfiguredProject()
 					if err != nil {
 						ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
-						os.Exit(1)
+						return err
 					}
 					projectName = detectedProject
 				}
@@ -95,13 +95,13 @@ func ExportCmd() *cobra.Command {
 
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if len(entries) == 0 {
 				ui.PrintWarning(ui.EmojiWarning, "No entries to export.")
 				ui.NewlineBelow()
-				os.Exit(0)
+				return nil
 			}
 
 			var exportPath string
@@ -132,7 +132,7 @@ func ExportCmd() *cobra.Command {
 				// make sure that that the path is valid
 				if err := os.MkdirAll(exportPath, 0755); err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("Failed to create export directory: %v", err))
-					os.Exit(1)
+					return err
 				}
 			}
 
@@ -166,17 +166,19 @@ func ExportCmd() *cobra.Command {
 				err = export.ToJson(entries, filename, exportUtc)
 			default:
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("Unknown format '%s'. Use 'csv' or 'json'", exportFormat))
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			ui.PrintSuccess(ui.EmojiExport, fmt.Sprintf("Exported %s to %s", ui.Bold(fmt.Sprintf("%d entries", len(entries))), ui.Bold(filename)))
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

@@ -2,7 +2,6 @@ package tracking
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/storage"
@@ -19,13 +18,13 @@ func ResumeCmd() *cobra.Command {
 		Use:   "resume",
 		Short: "Resume time tracking",
 		Long:  `Resume time tracking by starting a new session with the same project and description as the last stopped session for the current project.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -33,39 +32,39 @@ func ResumeCmd() *cobra.Command {
 			running, err := db.GetRunningEntry()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if running != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("Already tracking time for `%s`", running.ProjectName))
 				ui.PrintMuted(0, "Use 'tmpo stop' to stop the current session first.")
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			projectName, err := project.DetectConfiguredProjectWithOverride(resumeProjectFlag)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			lastStopped, err := db.GetLastStoppedEntryByProject(projectName)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if lastStopped == nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("No previous session found for project '%s' to resume.", projectName))
 				ui.PrintMuted(0, "Use 'tmpo start' to begin a new session.")
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			entry, err := db.CreateEntry(lastStopped.ProjectName, lastStopped.Description, lastStopped.HourlyRate, lastStopped.MilestoneName)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			db.SaveLastAction(storage.UndoAction{Type: storage.ActionResume, EntryID: entry.ID, ProjectName: entry.ProjectName})
@@ -81,6 +80,8 @@ func ResumeCmd() *cobra.Command {
 			}
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

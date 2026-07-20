@@ -128,8 +128,9 @@ func TestGetProjectDetails(t *testing.T) {
 		acceptDefaults = true
 		defaultName := "test-project"
 
-		name, hourlyRate, description, exportPath := getProjectDetails(defaultName, "Test Title")
+		name, hourlyRate, description, exportPath, err := getProjectDetails(defaultName, "Test Title")
 
+		assert.NoError(t, err)
 		assert.Equal(t, defaultName, name)
 		assert.Equal(t, float64(0), hourlyRate)
 		assert.Empty(t, description)

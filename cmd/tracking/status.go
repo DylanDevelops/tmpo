@@ -2,7 +2,6 @@ package tracking
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/settings"
@@ -17,13 +16,13 @@ func StatusCmd() *cobra.Command {
 		Short: "Show current tracking status",
 		Long:  `Display information about the currently running time tracking session.`,
 
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -31,7 +30,7 @@ func StatusCmd() *cobra.Command {
 			running, err := db.GetRunningEntry()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if running == nil {
@@ -39,7 +38,7 @@ func StatusCmd() *cobra.Command {
 				ui.NewlineBelow()
 				ui.PrintMuted(0, "Use 'tmpo start' to begin tracking")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			duration := time.Since(running.StartTime)
@@ -57,6 +56,8 @@ func StatusCmd() *cobra.Command {
 			}
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

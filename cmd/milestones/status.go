@@ -2,7 +2,6 @@ package milestones
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/project"
@@ -21,41 +20,41 @@ func StatusCmd() *cobra.Command {
 		Use:   "status",
 		Short: "Show active milestone status",
 		Long:  `Display information about the currently active milestone for the current project, or the one specified.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 			defer db.Close()
 
 			projectName, err := project.DetectConfiguredProjectWithOverride(statusMilestoneProjectFlag)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			// Get active milestone
 			activeMilestone, err := db.GetActiveMilestoneForProject(projectName)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if activeMilestone == nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("No active milestone found for %s", projectName))
 				ui.PrintMuted(0, "Use 'tmpo milestone start' to start a new milestone.")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			// Get entries for this milestone
 			entries, err := db.GetEntriesByMilestone(projectName, activeMilestone.Name)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			// Calculate total time tracked
@@ -73,6 +72,8 @@ func StatusCmd() *cobra.Command {
 			ui.PrintInfo(4, "Entries", fmt.Sprintf("%d", len(entries)))
 			ui.PrintInfo(4, "Total Time", ui.FormatDuration(totalTime))
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

@@ -26,8 +26,10 @@ func VersionCmd() *cobra.Command {
 		Short:  "Show version information",
 		Long:   "Display the current version information including date and release URL.",
 		Hidden: true,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			DisplayVersionWithUpdateCheck()
+
+			return nil
 		},
 	}
 

@@ -2,7 +2,6 @@ package entries
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -24,7 +23,7 @@ func EditCmd() *cobra.Command {
 		Use:   "edit",
 		Short: "Edit an existing time entry",
 		Long:  `Edit an existing time entry using an interactive menu.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 			ui.PrintSuccess("✏️", "Edit Time Entry")
 			fmt.Println()
@@ -33,7 +32,7 @@ func EditCmd() *cobra.Command {
 			globalCfg, err := settings.LoadGlobalConfig()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("loading config: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			// Get date format for prompts and validation
@@ -42,7 +41,7 @@ func EditCmd() *cobra.Command {
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 			defer db.Close()
 
@@ -54,13 +53,13 @@ func EditCmd() *cobra.Command {
 				projects, err := db.GetProjectsWithCompletedEntries()
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 
 				if len(projects) == 0 {
 					ui.PrintError(ui.EmojiError, "No completed time entries found")
 					ui.NewlineBelow()
-					os.Exit(1)
+					return ui.ErrHandled
 				}
 
 				projectPrompt := promptui.Select{
@@ -71,7 +70,7 @@ func EditCmd() *cobra.Command {
 				_, selectedProject, err := projectPrompt.Run()
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 
 				projectName = selectedProject
@@ -80,7 +79,7 @@ func EditCmd() *cobra.Command {
 				detectedProject, err := project.DetectConfiguredProjectWithOverride(editProjectFlag)
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
-					os.Exit(1)
+					return err
 				}
 				projectName = detectedProject
 			}
@@ -89,7 +88,7 @@ func EditCmd() *cobra.Command {
 			entries, err = db.GetCompletedEntriesByProject(projectName)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if len(entries) == 0 {
@@ -98,7 +97,7 @@ func EditCmd() *cobra.Command {
 					ui.PrintMuted(0, "Use 'tmpo edit --show-all-projects' to see entries from all projects")
 				}
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			// Format entries for selection
@@ -129,7 +128,7 @@ func EditCmd() *cobra.Command {
 			idx, _, err := entryPrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			selectedEntry := items[idx].Entry
@@ -155,7 +154,7 @@ func EditCmd() *cobra.Command {
 			startDateInput, err := startDatePrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			startDateInput = strings.TrimSpace(startDateInput)
@@ -174,7 +173,7 @@ func EditCmd() *cobra.Command {
 			startTimeInput, err := startTimePrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			startTimeInput = strings.TrimSpace(startTimeInput)
@@ -193,7 +192,7 @@ func EditCmd() *cobra.Command {
 			endDateInput, err := endDatePrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			endDateInput = strings.TrimSpace(endDateInput)
@@ -212,7 +211,7 @@ func EditCmd() *cobra.Command {
 			endTimeInput, err := endTimePrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			endTimeInput = strings.TrimSpace(endTimeInput)
@@ -223,7 +222,7 @@ func EditCmd() *cobra.Command {
 			// Validate that end is after start
 			if err := validateEndDateTime(startDateInput, startTimeInput, endDateInput, endTimeInput, dateFormatLayout); err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			// Edit description
@@ -240,7 +239,7 @@ func EditCmd() *cobra.Command {
 			descriptionInput, err := descriptionPrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			descriptionInput = ui.SanitizeSingleLine(descriptionInput)
@@ -252,7 +251,7 @@ func EditCmd() *cobra.Command {
 			milestones, err := db.GetMilestonesByProject(projectName)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			var newMilestoneName *string
@@ -282,7 +281,7 @@ func EditCmd() *cobra.Command {
 				milestoneIdx, _, err := milestonePrompt.Run()
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 
 				// if not its not empty set the milestone
@@ -296,13 +295,13 @@ func EditCmd() *cobra.Command {
 			newStartTime, err := parseDateTime(startDateInput, startTimeInput, dateFormatLayout)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing start time: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			newEndTime, err := parseDateTime(endDateInput, endTimeInput, dateFormatLayout)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing end time: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			editedEntry.StartTime = newStartTime
@@ -344,13 +343,13 @@ func EditCmd() *cobra.Command {
 						_, result, err := confirmPrompt.Run()
 						if err != nil {
 							ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-							os.Exit(1)
+							return err
 						}
 
 						if result == "No" {
 							ui.PrintWarning(ui.EmojiWarning, "Milestone assignment cancelled")
 							ui.NewlineBelow()
-							os.Exit(0)
+							return nil
 						}
 					}
 				}
@@ -405,7 +404,7 @@ func EditCmd() *cobra.Command {
 			if !hasChanges {
 				ui.PrintWarning(ui.EmojiWarning, "No changes detected")
 				ui.NewlineBelow()
-				os.Exit(0)
+				return nil
 			}
 
 			fmt.Println()
@@ -418,19 +417,19 @@ func EditCmd() *cobra.Command {
 			_, result, err := confirmPrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if result == "No" {
 				ui.PrintWarning(ui.EmojiWarning, "Changes discarded")
 				ui.NewlineBelow()
-				os.Exit(0)
+				return nil
 			}
 
 			// Save to database
 			if err := db.UpdateTimeEntry(editedEntry.ID, editedEntry); err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			db.SaveLastAction(storage.UndoAction{
@@ -443,6 +442,8 @@ func EditCmd() *cobra.Command {
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, "Entry updated successfully")
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

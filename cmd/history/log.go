@@ -2,7 +2,6 @@ package history
 
 import (
 	"fmt"
-	"os"
 	"slices"
 	"time"
 
@@ -27,14 +26,14 @@ func LogCmd() *cobra.Command {
 		Use:   "log",
 		Short: "View time tracking history",
 		Long:  `Display past time tracking entries with optional filtering.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -48,7 +47,7 @@ func LogCmd() *cobra.Command {
 					detectedProject, err := project.DetectConfiguredProject()
 					if err != nil {
 						ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
-						os.Exit(1)
+						return err
 					}
 					projectName = detectedProject
 				}
@@ -59,7 +58,7 @@ func LogCmd() *cobra.Command {
 				if err != nil {
 					ui.PrintError(ui.EmojiError, err.Error())
 					ui.NewlineBelow()
-					os.Exit(1)
+					return ui.ErrHandled
 				}
 				start := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, time.Local)
 				end := start.Add(24 * time.Hour)
@@ -88,13 +87,13 @@ func LogCmd() *cobra.Command {
 
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if len(entries) == 0 {
 				ui.PrintWarning(ui.EmojiWarning, "No time entries found.")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			ui.PrintSuccess(ui.EmojiLog, fmt.Sprintf("Time Entries (%d total)", len(entries)))
@@ -142,6 +141,8 @@ func LogCmd() *cobra.Command {
 			fmt.Printf("%s %s\n", ui.BoldInfo("Total Time:"), ui.Bold(ui.FormatDuration(totalDuration)))
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

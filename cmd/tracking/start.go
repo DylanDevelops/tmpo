@@ -2,7 +2,6 @@ package tracking
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/settings"
@@ -20,13 +19,13 @@ func StartCmd() *cobra.Command {
 		Use:   "start [description]",
 		Short: "Start tracking time",
 		Long:  `Start a new time tracking session for the current project.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -34,20 +33,20 @@ func StartCmd() *cobra.Command {
 			running, err := db.GetRunningEntry()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if running != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("Already tracking time for `%s`", running.ProjectName))
 				ui.PrintMuted(0, "Use 'tmpo stop' to stop the current session first.")
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			projectName, err := project.DetectConfiguredProjectWithOverride(startProjectFlag)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			description := ""
@@ -71,7 +70,7 @@ func StartCmd() *cobra.Command {
 			entry, err := db.CreateEntry(projectName, description, hourlyRate, milestoneName)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			db.SaveLastAction(storage.UndoAction{Type: storage.ActionStart, EntryID: entry.ID, ProjectName: entry.ProjectName})
@@ -98,6 +97,8 @@ func StartCmd() *cobra.Command {
 			}
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

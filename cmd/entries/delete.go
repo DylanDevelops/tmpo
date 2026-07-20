@@ -2,7 +2,6 @@ package entries
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/settings"
@@ -19,7 +18,7 @@ func DeleteCmd() *cobra.Command {
 		Use:   "delete",
 		Short: "Delete a time entry",
 		Long:  `Delete a time entry using an interactive menu.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 			ui.PrintSuccess("🗑️", "Delete Time Entry")
 			fmt.Println()
@@ -27,7 +26,7 @@ func DeleteCmd() *cobra.Command {
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 			defer db.Close()
 
@@ -39,13 +38,13 @@ func DeleteCmd() *cobra.Command {
 				projects, err := db.GetAllProjects()
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 
 				if len(projects) == 0 {
 					ui.PrintError(ui.EmojiError, "No time entries found")
 					ui.NewlineBelow()
-					os.Exit(1)
+					return ui.ErrHandled
 				}
 
 				projectPrompt := promptui.Select{
@@ -56,7 +55,7 @@ func DeleteCmd() *cobra.Command {
 				_, selectedProject, err := projectPrompt.Run()
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 
 				projectName = selectedProject
@@ -65,7 +64,7 @@ func DeleteCmd() *cobra.Command {
 				detectedProject, err := project.DetectConfiguredProject()
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
-					os.Exit(1)
+					return err
 				}
 				projectName = detectedProject
 			}
@@ -74,7 +73,7 @@ func DeleteCmd() *cobra.Command {
 			entries, err = db.GetEntriesByProject(projectName)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if len(entries) == 0 {
@@ -83,7 +82,7 @@ func DeleteCmd() *cobra.Command {
 					ui.PrintMuted(0, "Use 'tmpo delete --show-all-projects' to see entries from all projects")
 				}
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			// Format entries for selection
@@ -114,7 +113,7 @@ func DeleteCmd() *cobra.Command {
 			idx, _, err := entryPrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			selectedEntry := items[idx].Entry
@@ -146,19 +145,19 @@ func DeleteCmd() *cobra.Command {
 			_, result, err := confirmPrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if result == "No" {
 				ui.PrintWarning(ui.EmojiWarning, "Deletion cancelled")
 				ui.NewlineBelow()
-				os.Exit(0)
+				return nil
 			}
 
 			// Delete from database
 			if err := db.DeleteTimeEntry(selectedEntry.ID); err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			db.SaveLastAction(storage.UndoAction{Type: storage.ActionDelete, ProjectName: selectedEntry.ProjectName, Entry: selectedEntry})
@@ -166,6 +165,8 @@ func DeleteCmd() *cobra.Command {
 			fmt.Println()
 			ui.PrintSuccess(ui.EmojiSuccess, "Entry deleted successfully")
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 
