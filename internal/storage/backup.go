@@ -160,6 +160,12 @@ func RestoreBackup(backupPath string) error {
 		return err
 	}
 
+	for _, suffix := range []string{"-wal", "-shm"} {
+		if err := os.Remove(dbPath + suffix); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to remove stale %s file: %w", suffix, err)
+		}
+	}
+
 	return nil
 }
 

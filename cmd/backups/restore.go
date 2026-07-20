@@ -23,6 +23,33 @@ func RestoreCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
+			db, err := storage.Initialize()
+			if err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
+				ui.NewlineBelow()
+				return ui.ErrHandled
+			}
+
+			running, err := db.GetRunningEntry()
+			if err != nil {
+				db.Close()
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("checking for active timer: %v", err))
+				ui.NewlineBelow()
+				return ui.ErrHandled
+			}
+			if running != nil {
+				db.Close()
+				ui.PrintError(ui.EmojiError, fmt.Sprintf(`timer is running for %s — stop it before restoring a backup`, ui.Bold(running.ProjectName)))
+				ui.NewlineBelow()
+				return ui.ErrHandled
+			}
+
+			if err := db.Close(); err != nil {
+				ui.PrintError(ui.EmojiError, fmt.Sprintf("closing database: %v", err))
+				ui.NewlineBelow()
+				return ui.ErrHandled
+			}
+
 			backups, err := storage.ListBackups()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("listing backups: %v", err))

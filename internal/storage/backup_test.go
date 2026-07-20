@@ -260,6 +260,68 @@ func TestRestoreBackup(t *testing.T) {
 	assert.Equal(t, "before backup", entries[0].Description)
 }
 
+func TestRestoreBackup_RemovesStaleWALSidecars(t *testing.T) {
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	// Create and populate the live DB, then snapshot it
+	db, err := Initialize()
+	assert.NoError(t, err)
+	_, err = db.CreateEntry("test-project", "before backup", nil, nil)
+	assert.NoError(t, err)
+
+	backup, err := db.CreateBackup()
+	assert.NoError(t, err)
+	db.Close()
+
+	// Simulate leftover WAL/SHM sidecar files next to the live DB
+	dbPath, err := GetDBPath()
+	assert.NoError(t, err)
+	walPath := dbPath + "-wal"
+	shmPath := dbPath + "-shm"
+	assert.NoError(t, os.WriteFile(walPath, []byte("stale wal"), 0600))
+	assert.NoError(t, os.WriteFile(shmPath, []byte("stale shm"), 0600))
+
+	// Restore should clear the stale sidecars so they cannot shadow the DB
+	assert.NoError(t, RestoreBackup(backup.Path))
+
+	_, err = os.Stat(walPath)
+	assert.True(t, os.IsNotExist(err), "expected stale -wal file to be removed")
+	_, err = os.Stat(shmPath)
+	assert.True(t, os.IsNotExist(err), "expected stale -shm file to be removed")
+
+	// Restored data must still be intact
+	db2, err := Initialize()
+	assert.NoError(t, err)
+	defer db2.Close()
+
+	entries, err := db2.GetEntries(0)
+	assert.NoError(t, err)
+	assert.Len(t, entries, 1)
+	assert.Equal(t, "before backup", entries[0].Description)
+}
+
+func TestRestoreBackup_SucceedsWithoutSidecars(t *testing.T) {
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	db, err := Initialize()
+	assert.NoError(t, err)
+	_, err = db.CreateEntry("test-project", "before backup", nil, nil)
+	assert.NoError(t, err)
+
+	backup, err := db.CreateBackup()
+	assert.NoError(t, err)
+	db.Close()
+
+	// No sidecar files exist; restore must still succeed cleanly
+	assert.NoError(t, RestoreBackup(backup.Path))
+}
+
 func TestCreateBackup_SetsPrivatePermissions(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("POSIX permissions are not enforced on Windows")
