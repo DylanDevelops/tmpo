@@ -2,13 +2,24 @@ package tracking
 
 import (
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/DylanDevelops/tmpo/internal/export"
 	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
 	"github.com/spf13/cobra"
 )
+
+var (
+	statusJson bool
+)
+
+type statusOutput struct {
+	Tracking bool                `json:"tracking"`
+	Entry    *export.ExportEntry `json:"entry,omitempty"`
+}
 
 func StatusCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -17,7 +28,9 @@ func StatusCmd() *cobra.Command {
 		Long:  `Display information about the currently running time tracking session.`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ui.NewlineAbove()
+			if !statusJson {
+				ui.NewlineAbove()
+			}
 
 			db, err := storage.Initialize()
 			if err != nil {
@@ -31,6 +44,15 @@ func StatusCmd() *cobra.Command {
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				return err
+			}
+
+			if statusJson {
+				output := statusOutput{Tracking: running != nil}
+				if running != nil {
+					entry := export.BuildExportEntries([]*storage.TimeEntry{running}, false)[0]
+					output.Entry = &entry
+				}
+				return export.EncodeJson(os.Stdout, output)
 			}
 
 			if running == nil {
@@ -60,6 +82,8 @@ func StatusCmd() *cobra.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().BoolVar(&statusJson, "json", false, "Output status as JSON")
 
 	return cmd
 }

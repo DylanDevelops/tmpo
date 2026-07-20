@@ -3,6 +3,7 @@ package export
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"slices"
 	"time"
@@ -20,8 +21,8 @@ type ExportEntry struct {
 	Milestone   string  `json:"milestone,omitempty"`
 }
 
-func ToJson(entries []*storage.TimeEntry, filename string, inUtc bool) error {
-	var exportEntries []ExportEntry
+func BuildExportEntries(entries []*storage.TimeEntry, inUtc bool) []ExportEntry {
+	exportEntries := make([]ExportEntry, 0, len(entries))
 
 	for _, entry := range slices.Backward(entries) {
 		export := ExportEntry{
@@ -42,6 +43,23 @@ func ToJson(entries []*storage.TimeEntry, filename string, inUtc bool) error {
 		exportEntries = append(exportEntries, export)
 	}
 
+	return exportEntries
+}
+
+func EncodeJson(w io.Writer, v any) error {
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "  ")
+
+	if err := encoder.Encode(v); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
+	}
+
+	return nil
+}
+
+func ToJson(entries []*storage.TimeEntry, filename string, inUtc bool) error {
+	exportEntries := BuildExportEntries(entries, inUtc)
+
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create JSON file: %w", err)
@@ -49,14 +67,7 @@ func ToJson(entries []*storage.TimeEntry, filename string, inUtc bool) error {
 
 	defer file.Close()
 
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-
-	if err := encoder.Encode(exportEntries); err != nil {
-		return fmt.Errorf("failed to encode JSON: %w", err)
-	}
-
-	return nil
+	return EncodeJson(file, exportEntries)
 }
 
 func toCorrectJsonTimestamp(timestamp time.Time, inUtc bool) string {

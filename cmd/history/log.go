@@ -2,9 +2,11 @@ package history
 
 import (
 	"fmt"
+	"os"
 	"slices"
 	"time"
 
+	"github.com/DylanDevelops/tmpo/internal/export"
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/storage"
@@ -19,6 +21,7 @@ var (
 	logToday     bool
 	logWeek      bool
 	logDate      string
+	logJson      bool
 )
 
 func LogCmd() *cobra.Command {
@@ -27,7 +30,9 @@ func LogCmd() *cobra.Command {
 		Short: "View time tracking history",
 		Long:  `Display past time tracking entries with optional filtering.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ui.NewlineAbove()
+			if !logJson {
+				ui.NewlineAbove()
+			}
 
 			db, err := storage.Initialize()
 
@@ -88,6 +93,10 @@ func LogCmd() *cobra.Command {
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				return err
+			}
+
+			if logJson {
+				return export.EncodeJson(os.Stdout, export.BuildExportEntries(entries, false))
 			}
 
 			if len(entries) == 0 {
@@ -152,6 +161,7 @@ func LogCmd() *cobra.Command {
 	cmd.Flags().BoolVarP(&logToday, "today", "t", false, "Show today's entries")
 	cmd.Flags().BoolVarP(&logWeek, "week", "w", false, "Show this week's entries")
 	cmd.Flags().StringVarP(&logDate, "date", "d", "", "Show entries for a specific date")
+	cmd.Flags().BoolVar(&logJson, "json", false, "Output entries as JSON")
 
 	return cmd
 }

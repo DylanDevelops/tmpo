@@ -92,6 +92,10 @@ tmpo resume --project "Client Work"    # Resume a global project from anywhere
 
 View the current tracking session with elapsed time.
 
+**Options:**
+
+- `--json` - Output machine-readable JSON instead of styled text (for scripts and status bars)
+
 ```bash
 tmpo status
 # Output:
@@ -99,6 +103,22 @@ tmpo status
 #     Started: 2:30 PM
 #     Duration: 1h 23m
 #     Description: Implementing feature
+
+tmpo status --json
+# Output when tracking:
+# {
+#   "tracking": true,
+#   "entry": {
+#     "project": "my-project",
+#     "start_time": "2026-01-15T14:30:00-05:00",
+#     "duration_hours": 1.38,
+#     "description": "Implementing feature"
+#   }
+# }
+# Output when idle:
+# {
+#   "tracking": false
+# }
 ```
 
 ### `tmpo log`
@@ -113,6 +133,7 @@ View your time tracking history.
 - `--today` - Show only today's entries
 - `--week` - Show this week's entries
 - `--date` - Show a specific date's entries
+- `--json` - Output entries as a machine-readable JSON array (for scripts and integrations)
 
 **Examples:**
 
@@ -124,6 +145,7 @@ tmpo log --milestone "Sprint 1"     # Filter by milestone
 tmpo log --today                    # Show today's entries
 tmpo log --week                     # Show this week's entries
 tmpo log --date "2026-01-15"        # Show January 15th, 2026 entries
+tmpo log --today --json             # Today's entries as JSON
 ```
 
 ### `tmpo stats`
@@ -136,15 +158,17 @@ Display statistics about your tracked time.
 - `--week` - Show this week's statistics
 - `--month` - Show this month's statistics
 - `--date` - Show a specific date's statistics
+- `--json` - Output statistics as machine-readable JSON (for scripts and dashboards)
 
 **Examples:**
 
 ```bash
-tmpo stats          # All-time stats
-tmpo stats --today  # Today's stats
-tmpo stats --week   # This week's stats
-tmpo stats --month  # This month's stats
+tmpo stats                     # All-time stats
+tmpo stats --today             # Today's stats
+tmpo stats --week              # This week's stats
+tmpo stats --month             # This month's stats
 tmpo stats --date "2026-01-15" # January 15th, 2026 entries
+tmpo stats --week --json       # This week's stats as JSON
 ```
 
 ## Configuration

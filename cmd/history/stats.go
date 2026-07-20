@@ -2,10 +2,13 @@ package history
 
 import (
 	"fmt"
+	"math"
+	"os"
 	"sort"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/currency"
+	"github.com/DylanDevelops/tmpo/internal/export"
 	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
@@ -17,7 +20,25 @@ var (
 	statsWeek  bool
 	statsMonth bool
 	statsDate  string
+	statsJson  bool
 )
+
+type projectStat struct {
+	Project    string   `json:"project"`
+	Hours      float64  `json:"hours"`
+	Percentage float64  `json:"percentage"`
+	Earnings   *float64 `json:"earnings,omitempty"`
+}
+
+type statsOutput struct {
+	Period          string        `json:"period"`
+	TotalHours      float64       `json:"total_hours"`
+	TotalEntries    int           `json:"total_entries"`
+	ProjectsTracked *int          `json:"projects_tracked,omitempty"`
+	TotalEarnings   *float64      `json:"total_earnings,omitempty"`
+	Currency        string        `json:"currency,omitempty"`
+	ByProject       []projectStat `json:"by_project"`
+}
 
 func StatsCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -25,7 +46,9 @@ func StatsCmd() *cobra.Command {
 		Short: "Show time tracking statistics",
 		Long:  `Display statistics and summaries of your time tracking data.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ui.NewlineAbove()
+			if !statsJson {
+				ui.NewlineAbove()
+			}
 
 			db, err := storage.Initialize()
 			if err != nil {
@@ -75,6 +98,10 @@ func StatsCmd() *cobra.Command {
 					return err
 				}
 
+				if statsJson {
+					return export.EncodeJson(os.Stdout, buildAllTimeStatsOutput(entries, db))
+				}
+
 				ShowAllTimeStats(entries, db)
 				return nil
 			}
@@ -83,6 +110,10 @@ func StatsCmd() *cobra.Command {
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
 				return err
+			}
+
+			if statsJson {
+				return export.EncodeJson(os.Stdout, buildStatsOutput(entries, periodName, nil))
 			}
 
 			ShowPeriodStats(entries, periodName)
@@ -95,6 +126,7 @@ func StatsCmd() *cobra.Command {
 	cmd.Flags().BoolVarP(&statsWeek, "week", "w", false, "Show this week's stats")
 	cmd.Flags().BoolVarP(&statsMonth, "month", "m", false, "Show this month's stats")
 	cmd.Flags().StringVarP(&statsDate, "date", "d", "", "Show stats for a specific date")
+	cmd.Flags().BoolVar(&statsJson, "json", false, "Output stats as JSON")
 
 	return cmd
 }
@@ -229,4 +261,74 @@ func getCurrencyCode() string {
 		return currency.DefaultCurrency
 	}
 	return globalCfg.Currency
+}
+
+func buildStatsOutput(entries []*storage.TimeEntry, period string, projectsTracked *int) statsOutput {
+	projectStats := make(map[string]time.Duration)
+	projectEarnings := make(map[string]float64)
+	var totalDuration time.Duration
+	var totalEarnings float64
+	hasAnyEarnings := false
+
+	for _, entry := range entries {
+		duration := entry.Duration()
+		projectStats[entry.ProjectName] += duration
+		totalDuration += duration
+
+		if entry.HourlyRate != nil {
+			earnings := entry.RoundedHours() * *entry.HourlyRate
+			projectEarnings[entry.ProjectName] += earnings
+			totalEarnings += earnings
+			hasAnyEarnings = true
+		}
+	}
+
+	var projects []string
+	for project := range projectStats {
+		projects = append(projects, project)
+	}
+	sort.Strings(projects)
+
+	byProject := make([]projectStat, 0, len(projects))
+	for _, project := range projects {
+		duration := projectStats[project]
+		percentage := 0.0
+		if totalDuration > 0 {
+			percentage = (duration.Seconds() / totalDuration.Seconds()) * 100
+		}
+
+		stat := projectStat{
+			Project:    project,
+			Hours:      duration.Hours(),
+			Percentage: math.Round(percentage*10) / 10,
+		}
+
+		if earnings, ok := projectEarnings[project]; ok && earnings > 0 {
+			stat.Earnings = &earnings
+		}
+
+		byProject = append(byProject, stat)
+	}
+
+	output := statsOutput{
+		Period:          period,
+		TotalHours:      totalDuration.Hours(),
+		TotalEntries:    len(entries),
+		ProjectsTracked: projectsTracked,
+		ByProject:       byProject,
+	}
+
+	if hasAnyEarnings {
+		output.TotalEarnings = &totalEarnings
+		output.Currency = getCurrencyCode()
+	}
+
+	return output
+}
+
+func buildAllTimeStatsOutput(entries []*storage.TimeEntry, db *storage.Database) statsOutput {
+	allProjects, _ := db.GetAllProjects()
+	count := len(allProjects)
+
+	return buildStatsOutput(entries, "All Time", &count)
 }

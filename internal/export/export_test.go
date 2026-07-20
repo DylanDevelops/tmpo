@@ -1,10 +1,12 @@
 package export
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -300,5 +302,73 @@ func TestToJson(t *testing.T) {
 		if desc, exists := rawData[0]["description"]; exists {
 			assert.Empty(t, desc)
 		}
+	})
+}
+
+func TestBuildExportEntries(t *testing.T) {
+	startTime := time.Date(2024, 1, 1, 9, 0, 0, 0, time.UTC)
+	endTime := time.Date(2024, 1, 1, 17, 0, 0, 0, time.UTC)
+	milestone := "v1"
+
+	t.Run("orders entries oldest-first and maps fields", func(t *testing.T) {
+		entries := []*storage.TimeEntry{
+			{ProjectName: "newest", StartTime: startTime, EndTime: &endTime, Description: "second"},
+			{ProjectName: "oldest", StartTime: startTime, EndTime: &endTime, Description: "first", MilestoneName: &milestone},
+		}
+
+		result := BuildExportEntries(entries, true)
+
+		assert.Len(t, result, 2)
+		// slices.Backward reverses input order, so the last input comes first
+		assert.Equal(t, "oldest", result[0].Project)
+		assert.Equal(t, "2024-01-01T09:00:00Z", result[0].StartTime)
+		assert.Equal(t, "2024-01-01T17:00:00Z", result[0].EndTime)
+		assert.Equal(t, 8.0, result[0].Duration)
+		assert.Equal(t, "v1", result[0].Milestone)
+		assert.Equal(t, "newest", result[1].Project)
+		assert.Empty(t, result[1].Milestone)
+	})
+
+	t.Run("omits end time for running entries", func(t *testing.T) {
+		entries := []*storage.TimeEntry{
+			{ProjectName: "running", StartTime: startTime, EndTime: nil},
+		}
+
+		result := BuildExportEntries(entries, true)
+
+		assert.Len(t, result, 1)
+		assert.Empty(t, result[0].EndTime)
+	})
+
+	t.Run("returns non-nil empty slice for no entries", func(t *testing.T) {
+		result := BuildExportEntries([]*storage.TimeEntry{}, false)
+
+		assert.NotNil(t, result)
+		assert.Len(t, result, 0)
+
+		// A nil slice would marshal to "null"; ensure an empty array is emitted
+		encoded, err := json.Marshal(result)
+		assert.NoError(t, err)
+		assert.Equal(t, "[]", string(encoded))
+	})
+}
+
+func TestEncodeJson(t *testing.T) {
+	t.Run("writes indented JSON to the writer", func(t *testing.T) {
+		var buf bytes.Buffer
+		err := EncodeJson(&buf, map[string]bool{"tracking": false})
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "\"tracking\": false")
+		// SetIndent adds two-space indentation
+		assert.True(t, strings.Contains(buf.String(), "\n  \"tracking\""))
+	})
+
+	t.Run("encodes an empty slice as an array", func(t *testing.T) {
+		var buf bytes.Buffer
+		err := EncodeJson(&buf, []ExportEntry{})
+
+		assert.NoError(t, err)
+		assert.Equal(t, "[]", strings.TrimSpace(buf.String()))
 	})
 }
