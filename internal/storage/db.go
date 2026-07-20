@@ -108,7 +108,7 @@ func Initialize() (*Database, error) {
 	if err := fsperm.SecureFile(dbPath); err != nil {
 		return nil, err
 	}
-	for _, suffix := range []string{"-wal", "-shm"} {
+	for _, suffix := range []string{"-journal", "-wal", "-shm"} {
 		if err := fsperm.SecureFile(dbPath + suffix); err != nil {
 			return nil, err
 		}
