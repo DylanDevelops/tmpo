@@ -158,15 +158,17 @@ Display statistics about your tracked time.
 - `--week` - Show this week's statistics
 - `--month` - Show this month's statistics
 - `--date` - Show a specific date's statistics
+- `--json` - Output statistics as machine-readable JSON (for scripts and dashboards)
 
 **Examples:**
 
 ```bash
-tmpo stats          # All-time stats
-tmpo stats --today  # Today's stats
-tmpo stats --week   # This week's stats
-tmpo stats --month  # This month's stats
+tmpo stats                     # All-time stats
+tmpo stats --today             # Today's stats
+tmpo stats --week              # This week's stats
+tmpo stats --month             # This month's stats
 tmpo stats --date "2026-01-15" # January 15th, 2026 entries
+tmpo stats --week --json       # This week's stats as JSON
 ```
 
 ## Configuration
