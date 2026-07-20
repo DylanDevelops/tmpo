@@ -2,7 +2,6 @@ package backups
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/DylanDevelops/tmpo/internal/settings"
 	"github.com/DylanDevelops/tmpo/internal/storage"
@@ -15,21 +14,21 @@ func ListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "Lists all existing backups",
 		Long:  `Lists all existing backups which can be used to restore.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			backups, err := storage.ListBackups()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("listing backups: %v", err))
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			if len(backups) == 0 {
 				ui.PrintInfo(0, ui.EmojiInfo+"  No backups found", "")
 				ui.PrintMuted(2, "Run 'tmpo backup create' to create one.")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			fmt.Printf("  %s%-4s  %-28s  %-8s  %s%s\n",
@@ -59,6 +58,8 @@ func ListCmd() *cobra.Command {
 			}
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

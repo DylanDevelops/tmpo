@@ -2,7 +2,6 @@ package milestones
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/DylanDevelops/tmpo/internal/project"
 	"github.com/DylanDevelops/tmpo/internal/settings"
@@ -21,13 +20,13 @@ func ListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List milestones",
 		Long:  `List milestones for the current project. Use --all to list milestones from all projects.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 			defer db.Close()
 
@@ -39,7 +38,7 @@ func ListCmd() *cobra.Command {
 				milestones, err = db.GetAllMilestones()
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 			} else {
 				if listProject != "" {
@@ -48,21 +47,21 @@ func ListCmd() *cobra.Command {
 					projectName, err = project.DetectConfiguredProject()
 					if err != nil {
 						ui.PrintError(ui.EmojiError, fmt.Sprintf("detecting project: %v", err))
-						os.Exit(1)
+						return err
 					}
 				}
 
 				milestones, err = db.GetMilestonesByProject(projectName)
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 			}
 
 			if len(milestones) == 0 {
 				ui.PrintWarning(ui.EmojiWarning, "No milestones found")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			// Print header
@@ -129,6 +128,8 @@ func ListCmd() *cobra.Command {
 			}
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

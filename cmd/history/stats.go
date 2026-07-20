@@ -2,7 +2,6 @@ package history
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"time"
 
@@ -25,13 +24,13 @@ func StatsCmd() *cobra.Command {
 		Use:   "stats",
 		Short: "Show time tracking statistics",
 		Long:  `Display statistics and summaries of your time tracking data.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -44,7 +43,7 @@ func StatsCmd() *cobra.Command {
 				if err != nil {
 					ui.PrintError(ui.EmojiError, err.Error())
 					ui.NewlineBelow()
-					os.Exit(1)
+					return ui.ErrHandled
 				}
 				start = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, parsedDate.Location()).UTC()
 				end = start.Add(24 * time.Hour)
@@ -73,20 +72,22 @@ func StatsCmd() *cobra.Command {
 				entries, err := db.GetEntries(0)
 				if err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 
 				ShowAllTimeStats(entries, db)
-				return
+				return nil
 			}
 
 			entries, err := db.GetEntriesByDateRange(start, end)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			ShowPeriodStats(entries, periodName)
+
+			return nil
 		},
 	}
 

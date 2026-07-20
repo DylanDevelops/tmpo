@@ -2,7 +2,6 @@ package entries
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -37,7 +36,7 @@ func ManualCmd() *cobra.Command {
 		Use:   "manual",
 		Short: "Create a manual time entry",
 		Long:  `Create a completed time entry by specifying start and end times using an interactive menu.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 			ui.PrintSuccess(ui.EmojiManual, "Create Manual Time Entry")
 			fmt.Println()
@@ -45,7 +44,7 @@ func ManualCmd() *cobra.Command {
 			globalCfg, err := settings.LoadGlobalConfig()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("loading config: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			dateFormatDisplay, dateFormatLayout := getDateFormatInfo(globalCfg.DateFormat)
@@ -54,7 +53,7 @@ func ManualCmd() *cobra.Command {
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 			defer db.Close()
 
@@ -96,7 +95,7 @@ func ManualCmd() *cobra.Command {
 				projectInput, promptErr := projectPrompt.Run()
 				if promptErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", promptErr))
-					os.Exit(1)
+					return promptErr
 				}
 
 				projectInput = ui.SanitizeSingleLine(projectInput)
@@ -108,7 +107,7 @@ func ManualCmd() *cobra.Command {
 
 				if projectName == "" {
 					ui.PrintError(ui.EmojiError, "project name cannot be empty")
-					os.Exit(1)
+					return ui.ErrHandled
 				}
 
 				hourlyRate = nil
@@ -136,7 +135,7 @@ func ManualCmd() *cobra.Command {
 				startDateVal, promptErr := startDatePrompt.Run()
 				if promptErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", promptErr))
-					os.Exit(1)
+					return promptErr
 				}
 
 				startDateVal = strings.TrimSpace(startDateVal)
@@ -164,7 +163,7 @@ func ManualCmd() *cobra.Command {
 				startTimeVal, promptErr := startTimePrompt.Run()
 				if promptErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", promptErr))
-					os.Exit(1)
+					return promptErr
 				}
 
 				startTimeVal = strings.TrimSpace(startTimeVal)
@@ -186,7 +185,7 @@ func ManualCmd() *cobra.Command {
 				endDateVal, promptErr := endDatePrompt.Run()
 				if promptErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", promptErr))
-					os.Exit(1)
+					return promptErr
 				}
 
 				endDateVal = strings.TrimSpace(endDateVal)
@@ -198,7 +197,7 @@ func ManualCmd() *cobra.Command {
 
 				if err := validateDate(endDateInput, dateFormatLayout, dateFormatDisplay); err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 
 				// end time
@@ -219,7 +218,7 @@ func ManualCmd() *cobra.Command {
 				endTimeVal, promptErr := endTimePrompt.Run()
 				if promptErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", promptErr))
-					os.Exit(1)
+					return promptErr
 				}
 
 				endTimeVal = strings.TrimSpace(endTimeVal)
@@ -229,7 +228,7 @@ func ManualCmd() *cobra.Command {
 
 				if err := validateEndDateTime(startDateInput, startTimeStr, endDateInput, endTimeStr, dateFormatLayout); err != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-					os.Exit(1)
+					return err
 				}
 
 				// description
@@ -248,7 +247,7 @@ func ManualCmd() *cobra.Command {
 				descVal, promptErr := descriptionPrompt.Run()
 				if promptErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", promptErr))
-					os.Exit(1)
+					return promptErr
 				}
 
 				descVal = ui.SanitizeSingleLine(descVal)
@@ -259,14 +258,14 @@ func ManualCmd() *cobra.Command {
 				parsedStart, parseErr := parseDateTime(startDateInput, startTimeStr, dateFormatLayout)
 				if parseErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing start time: %v", parseErr))
-					os.Exit(1)
+					return parseErr
 				}
 				startTime = parsedStart
 
 				parsedEnd, parseErr := parseDateTime(endDateInput, endTimeStr, dateFormatLayout)
 				if parseErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("parsing end time: %v", parseErr))
-					os.Exit(1)
+					return parseErr
 				}
 				endTime = parsedEnd
 
@@ -291,7 +290,7 @@ func ManualCmd() *cobra.Command {
 					milestoneIdx, _, promptErr := milestonePrompt.Run()
 					if promptErr != nil {
 						ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", promptErr))
-						os.Exit(1)
+						return promptErr
 					}
 
 					if milestoneIdx > 0 {
@@ -341,7 +340,7 @@ func ManualCmd() *cobra.Command {
 				_, result, promptErr := confirmPrompt.Run()
 				if promptErr != nil {
 					ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", promptErr))
-					os.Exit(1)
+					return promptErr
 				}
 
 				if result == "Confirm" {
@@ -350,7 +349,7 @@ func ManualCmd() *cobra.Command {
 					fmt.Println()
 					ui.PrintWarning(ui.EmojiWarning, "Entry creation cancelled")
 					ui.NewlineBelow()
-					os.Exit(0)
+					return nil
 				}
 
 				fmt.Println()
@@ -359,7 +358,7 @@ func ManualCmd() *cobra.Command {
 			entry, err := db.CreateManualEntry(projectName, description, startTime, endTime, hourlyRate, milestoneName)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			db.SaveLastAction(storage.UndoAction{Type: storage.ActionManual, EntryID: entry.ID, ProjectName: entry.ProjectName})
@@ -386,6 +385,8 @@ func ManualCmd() *cobra.Command {
 			}
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

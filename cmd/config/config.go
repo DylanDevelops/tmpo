@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/DylanDevelops/tmpo/internal/settings"
@@ -17,14 +16,14 @@ func ConfigCmd() *cobra.Command {
 		Aliases: []string{"settings", "preferences"},
 		Short:   "Configure global tmpo settings",
 		Long:    `Set up global configuration for tmpo including currency, date/time format, and timezone.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			// Load current global config
 			currentConfig, err := settings.LoadGlobalConfig()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("Failed to load config: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			// Display header
@@ -69,7 +68,7 @@ func ConfigCmd() *cobra.Command {
 			currencyInput, err := currencyPrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			currencyCode := strings.ToUpper(strings.TrimSpace(currencyInput))
@@ -88,7 +87,7 @@ func ConfigCmd() *cobra.Command {
 			_, dateFormat, err := dateFormatSelect.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			// Keep current format if selected
@@ -107,7 +106,7 @@ func ConfigCmd() *cobra.Command {
 			_, timeFormat, err := timeFormatSelect.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			// Keep current format if selected
@@ -127,7 +126,7 @@ func ConfigCmd() *cobra.Command {
 			timezoneInput, err := timezonePrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			timezone := strings.TrimSpace(timezoneInput)
@@ -146,7 +145,7 @@ func ConfigCmd() *cobra.Command {
 			exportPathInput, err := exportPathPrompt.Run()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			exportPath := strings.TrimSpace(exportPathInput)
@@ -169,7 +168,7 @@ func ConfigCmd() *cobra.Command {
 			// Save the config
 			if err := newConfig.Save(); err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("Failed to save config: %v", err))
-				os.Exit(1)
+				return err
 			}
 
 			// Display success message
@@ -197,6 +196,8 @@ func ConfigCmd() *cobra.Command {
 			ui.PrintInfo(4, ui.Bold("Export path"), exportPathDisplay)
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

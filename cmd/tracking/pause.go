@@ -2,7 +2,6 @@ package tracking
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/storage"
@@ -15,13 +14,13 @@ func PauseCmd() *cobra.Command {
 		Use:   "pause",
 		Short: "Pause time tracking",
 		Long:  `Pause the currently running time tracking session. Use 'tmpo resume' to continue tracking.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -29,19 +28,19 @@ func PauseCmd() *cobra.Command {
 			running, err := db.GetRunningEntry()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if running == nil {
 				ui.PrintWarning(ui.EmojiWarning, "No active time tracking session to pause.")
 				ui.NewlineBelow()
-				os.Exit(0)
+				return nil
 			}
 
 			err = db.StopEntry(running.ID)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			db.SaveLastAction(storage.UndoAction{Type: storage.ActionPause, EntryID: running.ID, ProjectName: running.ProjectName})
@@ -53,6 +52,8 @@ func PauseCmd() *cobra.Command {
 			ui.PrintMuted(4, "Use 'tmpo resume' to continue tracking")
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

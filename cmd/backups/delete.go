@@ -21,21 +21,21 @@ func DeleteCmd() *cobra.Command {
 		Use:   "delete",
 		Short: "Delete a backup",
 		Long:  `Permanently delete an existing backup. This action cannot be undone.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			backups, err := storage.ListBackups()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("listing backups: %v", err))
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			if len(backups) == 0 {
 				ui.PrintInfo(0, ui.EmojiInfo+"  No backups found", "")
 				ui.PrintMuted(2, "Run 'tmpo backup create' to create one.")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			var selected *storage.BackupInfo
@@ -51,7 +51,7 @@ func DeleteCmd() *cobra.Command {
 					if selected == nil {
 						ui.PrintError(ui.EmojiError, fmt.Sprintf("no backup found with ID %d", id))
 						ui.NewlineBelow()
-						os.Exit(1)
+						return ui.ErrHandled
 					}
 				} else {
 					for i := range backups {
@@ -63,7 +63,7 @@ func DeleteCmd() *cobra.Command {
 					if selected == nil {
 						ui.PrintError(ui.EmojiError, fmt.Sprintf("no backup found with filename %q", deleteIDFlag))
 						ui.NewlineBelow()
-						os.Exit(1)
+						return ui.ErrHandled
 					}
 				}
 			} else {
@@ -89,7 +89,7 @@ func DeleteCmd() *cobra.Command {
 				idx, _, err := prompt.Run()
 				if err != nil {
 					ui.NewlineBelow()
-					return
+					return nil
 				}
 
 				selected = &backups[idx]
@@ -103,17 +103,19 @@ func DeleteCmd() *cobra.Command {
 			if _, err := confirmPrompt.Run(); err != nil {
 				ui.PrintInfo(0, ui.EmojiInfo+"  Deletion cancelled", "")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			if err := os.Remove(selected.Path); err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("deleting backup: %v", err))
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			ui.PrintSuccess(ui.EmojiSuccess, fmt.Sprintf("Deleted %s", selected.Filename))
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

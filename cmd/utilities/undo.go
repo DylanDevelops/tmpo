@@ -2,7 +2,6 @@ package utilities
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/DylanDevelops/tmpo/internal/storage"
 	"github.com/DylanDevelops/tmpo/internal/ui"
@@ -26,26 +25,26 @@ func UndoCmd() *cobra.Command {
 		Use:   "undo",
 		Short: "Undo the previous action",
 		Long:  `Undo the previous action in case of a mistake or in need of a rollback.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 			defer db.Close()
 
 			action, err := db.GetLastAction()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if action == nil {
 				ui.PrintWarning(ui.EmojiWarning, "Nothing to undo.")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			ui.PrintInfo(0, ui.EmojiUndo+"  Last action", undoActionDescription(action))
@@ -58,13 +57,13 @@ func UndoCmd() *cobra.Command {
 			if _, err := confirmPrompt.Run(); err != nil {
 				ui.PrintWarning(ui.EmojiWarning, "Undo cancelled.")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			if err := applyUndo(db, action); err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("undo failed: %v", err))
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			// not fatal if fails
@@ -72,6 +71,8 @@ func UndoCmd() *cobra.Command {
 
 			ui.PrintSuccess(ui.EmojiUndo, "Undo successful.")
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

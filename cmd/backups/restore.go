@@ -2,7 +2,6 @@ package backups
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/DylanDevelops/tmpo/internal/settings"
@@ -21,21 +20,21 @@ func RestoreCmd() *cobra.Command {
 		Use:   "restore",
 		Short: "Restore from a backup",
 		Long:  `Restore your database from an existing backup.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			backups, err := storage.ListBackups()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("listing backups: %v", err))
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			if len(backups) == 0 {
 				ui.PrintInfo(0, ui.EmojiInfo+"  No backups found", "")
 				ui.PrintMuted(2, "Run 'tmpo backup create' to create one.")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			var selected *storage.BackupInfo
@@ -51,7 +50,7 @@ func RestoreCmd() *cobra.Command {
 					if selected == nil {
 						ui.PrintError(ui.EmojiError, fmt.Sprintf("no backup found with ID %d", id))
 						ui.NewlineBelow()
-						os.Exit(1)
+						return ui.ErrHandled
 					}
 				} else {
 					for i := range backups {
@@ -63,7 +62,7 @@ func RestoreCmd() *cobra.Command {
 					if selected == nil {
 						ui.PrintError(ui.EmojiError, fmt.Sprintf("no backup found with filename %q", restoreIDFlag))
 						ui.NewlineBelow()
-						os.Exit(1)
+						return ui.ErrHandled
 					}
 				}
 			} else {
@@ -89,7 +88,7 @@ func RestoreCmd() *cobra.Command {
 				idx, _, err := prompt.Run()
 				if err != nil {
 					ui.NewlineBelow()
-					return
+					return nil
 				}
 
 				selected = &backups[idx]
@@ -110,17 +109,19 @@ func RestoreCmd() *cobra.Command {
 			if _, err := confirmPrompt.Run(); err != nil {
 				ui.PrintInfo(0, ui.EmojiInfo+"  Restore cancelled", "")
 				ui.NewlineBelow()
-				return
+				return nil
 			}
 
 			if err := storage.RestoreBackup(selected.Path); err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("restoring backup: %v", err))
 				ui.NewlineBelow()
-				os.Exit(1)
+				return ui.ErrHandled
 			}
 
 			ui.PrintSuccess(ui.EmojiBackup, fmt.Sprintf("Restored from %s", selected.Filename))
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 

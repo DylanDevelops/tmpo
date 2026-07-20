@@ -2,7 +2,6 @@ package tracking
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/storage"
@@ -15,13 +14,13 @@ func StopCmd() *cobra.Command {
 		Use:   "stop",
 		Short: "Stop tracking time",
 		Long:  `Stop the currently running time tracking session.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ui.NewlineAbove()
 
 			db, err := storage.Initialize()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			defer db.Close()
@@ -29,19 +28,19 @@ func StopCmd() *cobra.Command {
 			running, err := db.GetRunningEntry()
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			if running == nil {
 				ui.PrintWarning(ui.EmojiWarning, "No active time tracking session.")
 				ui.NewlineBelow()
-				os.Exit(0)
+				return nil
 			}
 
 			err = db.StopEntry(running.ID)
 			if err != nil {
 				ui.PrintError(ui.EmojiError, fmt.Sprintf("%v", err))
-				os.Exit(1)
+				return err
 			}
 
 			db.SaveLastAction(storage.UndoAction{Type: storage.ActionStop, EntryID: running.ID, ProjectName: running.ProjectName})
@@ -52,6 +51,8 @@ func StopCmd() *cobra.Command {
 			ui.PrintInfo(4, ui.Bold("Total Duration"), ui.FormatDuration(duration))
 
 			ui.NewlineBelow()
+
+			return nil
 		},
 	}
 
