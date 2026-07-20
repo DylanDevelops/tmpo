@@ -54,7 +54,8 @@ func LogCmd() *cobra.Command {
 				}
 				entries, err = db.GetEntriesByMilestone(projectName, logMilestone)
 			} else if logDate != "" {
-				parsedDate, err := parseDateFlag(logDate)
+				var parsedDate time.Time
+				parsedDate, err = parseDateFlag(logDate)
 				if err != nil {
 					ui.PrintError(ui.EmojiError, err.Error())
 					ui.NewlineBelow()
