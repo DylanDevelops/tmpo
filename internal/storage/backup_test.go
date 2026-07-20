@@ -276,17 +276,23 @@ func TestRestoreBackup_RemovesStaleWALSidecars(t *testing.T) {
 	assert.NoError(t, err)
 	db.Close()
 
-	// Simulate leftover WAL/SHM sidecar files next to the live DB
+	// Simulate leftover sidecar files next to the live DB. tmpo runs in the
+	// default (rollback) journal mode, so -journal is the sidecar that can
+	// actually occur; -wal/-shm are covered defensively.
 	dbPath, err := GetDBPath()
 	assert.NoError(t, err)
+	journalPath := dbPath + "-journal"
 	walPath := dbPath + "-wal"
 	shmPath := dbPath + "-shm"
+	assert.NoError(t, os.WriteFile(journalPath, []byte("stale journal"), 0600))
 	assert.NoError(t, os.WriteFile(walPath, []byte("stale wal"), 0600))
 	assert.NoError(t, os.WriteFile(shmPath, []byte("stale shm"), 0600))
 
 	// Restore should clear the stale sidecars so they cannot shadow the DB
 	assert.NoError(t, RestoreBackup(backup.Path))
 
+	_, err = os.Stat(journalPath)
+	assert.True(t, os.IsNotExist(err), "expected stale -journal file to be removed")
 	_, err = os.Stat(walPath)
 	assert.True(t, os.IsNotExist(err), "expected stale -wal file to be removed")
 	_, err = os.Stat(shmPath)

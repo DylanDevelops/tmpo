@@ -146,6 +146,12 @@ func RestoreBackup(backupPath string) error {
 	}
 	defer src.Close()
 
+	for _, suffix := range []string{"-journal", "-wal", "-shm"} {
+		if err := os.Remove(dbPath + suffix); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to remove stale %s file: %w", suffix, err)
+		}
+	}
+
 	dst, err := os.Create(dbPath)
 	if err != nil {
 		return fmt.Errorf("failed to open database for writing: %w", err)
@@ -158,12 +164,6 @@ func RestoreBackup(backupPath string) error {
 
 	if err := fsperm.SecureFile(dbPath); err != nil {
 		return err
-	}
-
-	for _, suffix := range []string{"-wal", "-shm"} {
-		if err := os.Remove(dbPath + suffix); err != nil && !os.IsNotExist(err) {
-			return fmt.Errorf("failed to remove stale %s file: %w", suffix, err)
-		}
 	}
 
 	return nil
