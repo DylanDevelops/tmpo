@@ -22,17 +22,21 @@ func RootCmd() *cobra.Command {
 
 A minimal, developer-friendly time tracking tool that lives in your terminal.
 Track time effortlessly with automatic project detection and simple commands.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			cmd.SilenceErrors = true
+			cmd.SilenceUsage = true
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
 			// Check if version flag was set
 			versionFlag, _ := cmd.Flags().GetBool("version")
 
 			if versionFlag {
 				utilities.DisplayVersionWithUpdateCheck()
-				return
+				return nil
 			}
 
 			// Otherwise show help
-			cmd.Help()
+			return cmd.Help()
 		},
 	}
 

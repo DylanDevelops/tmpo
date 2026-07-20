@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -8,6 +9,10 @@ import (
 
 	"github.com/DylanDevelops/tmpo/internal/shell"
 )
+
+// ErrHandled signals that a command has already reported its failure to the
+// user through the Print helpers in this package.
+var ErrHandled = errors.New("command failed")
 
 // ANSI Color Constants
 const (
