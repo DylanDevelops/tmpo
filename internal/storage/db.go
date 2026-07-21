@@ -41,6 +41,13 @@ func Initialize() (*Database, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	success := false
+	defer func() {
+		if !success {
+			db.Close()
+		}
+	}()
+
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS time_entries (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -123,6 +130,7 @@ func Initialize() (*Database, error) {
 		}
 	}
 
+	success = true
 	return database, nil
 }
 
