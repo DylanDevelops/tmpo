@@ -326,12 +326,26 @@ Add pause/resume functionality
 
 ### Pull Request Guidelines
 
+- **Use a conventional-commit-style PR title** (e.g. `feat: add pause command`, `fix: correct status display`). The prefix determines the PR's category in the auto-generated release notes — supported: `feat`, `fix`, `perf`, `refactor`, `docs`, `build`, `ci`, `chore`.
 - Provide a clear description of the changes
 - Reference any related issues (e.g., "Fixes #123")
 - Ensure tests pass and code builds successfully
 - Be responsive to feedback and questions
 
 Reviews can take a few iterations, especially for large contributions. Don't be disheartened if you feel it takes time - we just want to ensure each contribution is high-quality and that any outstanding questions are resolved, captured or documented for posterity.
+
+## Releasing (Maintainers)
+
+Pushing a `vX.Y.Z` tag triggers the [Release workflow](.github/workflows/release.yml): GoReleaser builds the cross-platform binaries, publishes the GitHub release, and updates the Homebrew tap.
+
+Release notes are generated automatically from the merged pull requests — there is no manual changelog. Each PR is one entry, attributed to its author and grouped by its `type:` label, which the [PR labeler](.github/workflows/label-prs.yml) applies from the PR title. Add the `ignore-for-release` label to omit a PR.
+
+To preview the next release's notes before tagging:
+
+```bash
+gh api --method POST repos/DylanDevelops/tmpo/releases/generate-notes \
+  -f tag_name=vX.Y.Z -f previous_tag_name=<last-tag> --jq .body
+```
 
 ## Distribution Packaging
 
