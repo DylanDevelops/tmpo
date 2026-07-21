@@ -6,7 +6,7 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "dependencies"
+      - "type: dependencies"
 
   # Maintain GitHub Actions in your workflows
   - package-ecosystem: "github-actions"
@@ -14,5 +14,4 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "dependencies"
-      - "ci"
+      - "type: dependencies"
