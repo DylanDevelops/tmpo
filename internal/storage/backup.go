@@ -42,6 +42,11 @@ func GetBackupDir() (string, error) {
 
 // CreateBackup uses SQLite's VACUUM INTO to produce a clean, consistent snapshot of the live database.
 func (d *Database) CreateBackup() (*BackupInfo, error) {
+	return d.createBackup("")
+}
+
+// createBackup writes a VACUUM INTO snapshot to the backups directory.
+func (d *Database) createBackup(suffix string) (*BackupInfo, error) {
 	backupDir, err := GetBackupDir()
 	if err != nil {
 		return nil, err
@@ -52,7 +57,7 @@ func (d *Database) CreateBackup() (*BackupInfo, error) {
 	}
 
 	now := time.Now()
-	filename := fmt.Sprintf("tmpo-%s.db", now.Format("20060102-150405"))
+	filename := fmt.Sprintf("tmpo-%s%s.db", now.Format("20060102-150405"), suffix)
 	destPath := filepath.Join(backupDir, filename)
 
 	escapedPath := strings.ReplaceAll(destPath, "'", "''")

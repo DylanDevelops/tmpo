@@ -427,6 +427,137 @@ func TestRunMigrations(t *testing.T) {
 	assert.Equal(t, time.UTC, startTime.Location())
 }
 
+// setupLegacyEntriesTestDB creates an in-memory database whose time_entries
+// table predates the hourly_rate and milestone_name columns, mimicking a very
+// old tmpo installation.
+func setupLegacyEntriesTestDB(t *testing.T) *Database {
+	db, err := sql.Open("sqlite", ":memory:")
+	assert.NoError(t, err)
+
+	_, err = db.Exec(`
+		CREATE TABLE settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL,
+			updated_at DATETIME NOT NULL
+		)
+	`)
+	assert.NoError(t, err)
+
+	_, err = db.Exec(`
+		CREATE TABLE time_entries (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			project_name TEXT NOT NULL,
+			start_time DATETIME NOT NULL,
+			end_time DATETIME,
+			description TEXT
+		)
+	`)
+	assert.NoError(t, err)
+
+	_, err = db.Exec(`
+		CREATE TABLE milestones (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			project_name TEXT NOT NULL,
+			name TEXT NOT NULL,
+			start_time DATETIME NOT NULL,
+			end_time DATETIME,
+			UNIQUE(project_name, name)
+		)
+	`)
+	assert.NoError(t, err)
+
+	return &Database{db: db}
+}
+
+// hasColumn is a test helper that reports whether a table has a given column.
+func hasColumn(t *testing.T, db *Database, table, column string) bool {
+	t.Helper()
+	rows, err := db.db.Query("PRAGMA table_info(" + table + ")")
+	assert.NoError(t, err)
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			cid     int
+			name    string
+			ctype   string
+			notnull int
+			dflt    sql.NullString
+			pk      int
+		)
+		assert.NoError(t, rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk))
+		if name == column {
+			return true
+		}
+	}
+	return false
+}
+
+func TestMigrateEntrySchema_AddsMissingColumns(t *testing.T) {
+	db := setupLegacyEntriesTestDB(t)
+	defer db.Close()
+
+	// Legacy schema lacks both columns
+	assert.False(t, hasColumn(t, db, "time_entries", "hourly_rate"))
+	assert.False(t, hasColumn(t, db, "time_entries", "milestone_name"))
+
+	err := db.migrateEntrySchema()
+	assert.NoError(t, err)
+
+	// Both columns should now exist
+	assert.True(t, hasColumn(t, db, "time_entries", "hourly_rate"))
+	assert.True(t, hasColumn(t, db, "time_entries", "milestone_name"))
+
+	// Migration should be recorded as complete
+	hasRun, err := db.hasMigrationRun(Migration002_EntrySchema)
+	assert.NoError(t, err)
+	assert.True(t, hasRun)
+}
+
+func TestMigrateEntrySchema_Idempotent(t *testing.T) {
+	db := setupLegacyEntriesTestDB(t)
+	defer db.Close()
+
+	// First run adds the columns
+	assert.NoError(t, db.migrateEntrySchema())
+
+	// Second run must be a no-op and must not error on already-present columns
+	assert.NoError(t, db.migrateEntrySchema())
+
+	assert.True(t, hasColumn(t, db, "time_entries", "hourly_rate"))
+	assert.True(t, hasColumn(t, db, "time_entries", "milestone_name"))
+}
+
+func TestMigrateEntrySchema_NoOpWhenColumnsPresent(t *testing.T) {
+	// setupMigrationTestDB already includes both columns (current schema)
+	db := setupMigrationTestDB(t)
+	defer db.Close()
+
+	err := db.migrateEntrySchema()
+	assert.NoError(t, err)
+
+	hasRun, err := db.hasMigrationRun(Migration002_EntrySchema)
+	assert.NoError(t, err)
+	assert.True(t, hasRun)
+}
+
+func TestHasPendingMigrations(t *testing.T) {
+	db := setupMigrationTestDB(t)
+	defer db.Close()
+
+	// Nothing marked complete yet
+	pending, err := db.hasPendingMigrations()
+	assert.NoError(t, err)
+	assert.True(t, pending)
+
+	// Run every migration
+	assert.NoError(t, db.runMigrations())
+
+	pending, err = db.hasPendingMigrations()
+	assert.NoError(t, err)
+	assert.False(t, pending)
+}
+
 func TestMigrateTimeEntriesTableToUTC_EmptyTable(t *testing.T) {
 	db := setupMigrationTestDB(t)
 	defer db.Close()

@@ -3,8 +3,8 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/DylanDevelops/tmpo/internal/fsperm"
@@ -31,6 +31,10 @@ func Initialize() (*Database, error) {
 	}
 
 	dbPath := filepath.Join(tmpoDir, "tmpo.db")
+
+	_, statErr := os.Stat(dbPath)
+	dbExisted := statErr == nil
+
 	db, err := sql.Open("sqlite", dbPath)
 
 	if err != nil {
@@ -44,7 +48,8 @@ func Initialize() (*Database, error) {
 			start_time DATETIME NOT NULL,
 			end_time DATETIME,
 			description TEXT,
-			hourly_rate REAL
+			hourly_rate REAL,
+			milestone_name TEXT
 		)
 	`)
 
@@ -67,26 +72,6 @@ func Initialize() (*Database, error) {
 		return nil, fmt.Errorf("failed to create milestones table: %w", err)
 	}
 
-	_, err = db.Exec(`ALTER TABLE time_entries ADD COLUMN hourly_rate REAL`)
-	if err != nil && !isColumnExistsError(err) {
-		return nil, fmt.Errorf("failed to add hourly_rate column: %w", err)
-	}
-
-	_, err = db.Exec(`ALTER TABLE time_entries ADD COLUMN milestone_name TEXT`)
-	if err != nil && !isColumnExistsError(err) {
-		return nil, fmt.Errorf("failed to add milestone_name column: %w", err)
-	}
-
-	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS idx_time_entries_milestone ON time_entries(milestone_name)`)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create index: %w", err)
-	}
-
-	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS idx_milestones_project_active ON milestones(project_name, end_time)`)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create index: %w", err)
-	}
-
 	// settings table for tracking migrations and other metadata
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS settings (
@@ -101,8 +86,32 @@ func Initialize() (*Database, error) {
 
 	database := &Database{db: db}
 
+	var preMigrationBackupPath string
+	if dbExisted {
+		pending, err := database.hasPendingMigrations()
+		if err != nil {
+			return nil, fmt.Errorf("failed to check for pending migrations: %w", err)
+		}
+		if pending {
+			backup, err := database.createBackup("-premigration")
+			if err != nil {
+				return nil, fmt.Errorf("failed to create pre-migration backup: %w", err)
+			}
+			preMigrationBackupPath = backup.Path
+		}
+	}
+
 	if err := database.runMigrations(); err != nil {
+		if preMigrationBackupPath != "" {
+			return nil, fmt.Errorf("failed to run migrations (a pre-migration backup was preserved at %s): %w", preMigrationBackupPath, err)
+		}
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	if preMigrationBackupPath != "" {
+		if err := os.Remove(preMigrationBackupPath); err != nil && !os.IsNotExist(err) {
+			return nil, fmt.Errorf("failed to remove temporary pre-migration backup: %w", err)
+		}
 	}
 
 	if err := fsperm.SecureFile(dbPath); err != nil {
@@ -115,15 +124,6 @@ func Initialize() (*Database, error) {
 	}
 
 	return database, nil
-}
-
-func isColumnExistsError(err error) bool {
-	if err == nil {
-		return false
-	}
-	errMsg := err.Error()
-	return strings.Contains(errMsg, "duplicate column name") ||
-		strings.Contains(errMsg, "duplicate column")
 }
 
 func (d *Database) CreateEntry(projectName, description string, hourlyRate *float64, milestoneName *string) (*TimeEntry, error) {

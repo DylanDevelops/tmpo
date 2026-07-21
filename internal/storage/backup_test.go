@@ -328,6 +328,138 @@ func TestRestoreBackup_SucceedsWithoutSidecars(t *testing.T) {
 	assert.NoError(t, RestoreBackup(backup.Path))
 }
 
+// writeLegacyDBFile creates a tmpo.db on disk with a pre-migration schema (no
+// hourly_rate/milestone_name columns and no migration keys marked complete),
+// simulating a database from before the migration system existed.
+func writeLegacyDBFile(t *testing.T, path string) {
+	t.Helper()
+	db, err := sql.Open("sqlite", path)
+	assert.NoError(t, err)
+	defer db.Close()
+
+	_, err = db.Exec(`
+		CREATE TABLE time_entries (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			project_name TEXT NOT NULL,
+			start_time DATETIME NOT NULL,
+			end_time DATETIME,
+			description TEXT
+		)
+	`)
+	assert.NoError(t, err)
+
+	_, err = db.Exec(`
+		CREATE TABLE milestones (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			project_name TEXT NOT NULL,
+			name TEXT NOT NULL,
+			start_time DATETIME NOT NULL,
+			end_time DATETIME,
+			UNIQUE(project_name, name)
+		)
+	`)
+	assert.NoError(t, err)
+}
+
+func TestInitialize_RemovesPreMigrationBackupOnSuccess(t *testing.T) {
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	// Seed a legacy database file with pending migrations
+	tmpoDir := filepath.Join(tmpHome, ".tmpo")
+	assert.NoError(t, os.MkdirAll(tmpoDir, 0700))
+	writeLegacyDBFile(t, filepath.Join(tmpoDir, "tmpo.db"))
+
+	db, err := Initialize()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	// Migrations succeeded, so the temporary pre-migration snapshot must be gone.
+	// The user should see no backups they did not create themselves.
+	backups, err := ListBackups()
+	assert.NoError(t, err)
+	assert.Empty(t, backups, "successful migration should leave no pre-migration backup behind")
+
+	// Migrations should have completed and upgraded the schema
+	pending, err := db.hasPendingMigrations()
+	assert.NoError(t, err)
+	assert.False(t, pending)
+	assert.True(t, hasColumn(t, db, "time_entries", "milestone_name"))
+}
+
+func TestInitialize_RetainsPreMigrationBackupOnFailure(t *testing.T) {
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	// Seed a legacy database whose start_time cannot be scanned as a timestamp,
+	// forcing the UTC migration to fail partway through.
+	tmpoDir := filepath.Join(tmpHome, ".tmpo")
+	assert.NoError(t, os.MkdirAll(tmpoDir, 0700))
+	dbPath := filepath.Join(tmpoDir, "tmpo.db")
+	writeLegacyDBFile(t, dbPath)
+
+	seed, err := sql.Open("sqlite", dbPath)
+	assert.NoError(t, err)
+	_, err = seed.Exec(
+		"INSERT INTO time_entries (project_name, start_time, description) VALUES (?, ?, ?)",
+		"broken-project", "not-a-timestamp", "corrupt row",
+	)
+	assert.NoError(t, err)
+	assert.NoError(t, seed.Close())
+
+	// Initialize must fail, and the error must point at the retained snapshot
+	_, err = Initialize()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "pre-migration backup was preserved")
+
+	// The snapshot must still be present for the user to restore from
+	backups, err := ListBackups()
+	assert.NoError(t, err)
+	assert.Len(t, backups, 1)
+	assert.True(t, strings.HasSuffix(backups[0].Filename, "-premigration.db"))
+}
+
+func TestInitialize_NoBackupForFreshDB(t *testing.T) {
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	// No pre-existing database file: this is a brand-new install
+	db, err := Initialize()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	backups, err := ListBackups()
+	assert.NoError(t, err)
+	assert.Empty(t, backups, "fresh database should not trigger a pre-migration backup")
+}
+
+func TestInitialize_NoBackupWhenAlreadyMigrated(t *testing.T) {
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
+	t.Setenv("TMPO_DEV", "")
+
+	// First run creates and fully migrates the database
+	db, err := Initialize()
+	assert.NoError(t, err)
+	assert.NoError(t, db.Close())
+
+	// Second run against the up-to-date database must not create a backup
+	db2, err := Initialize()
+	assert.NoError(t, err)
+	defer db2.Close()
+
+	backups, err := ListBackups()
+	assert.NoError(t, err)
+	assert.Empty(t, backups, "already-migrated database should not trigger a pre-migration backup")
+}
+
 func TestCreateBackup_SetsPrivatePermissions(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("POSIX permissions are not enforced on Windows")
