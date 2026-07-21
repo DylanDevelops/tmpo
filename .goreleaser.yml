@@ -97,19 +97,24 @@ release:
   name_template: "tmpo {{.Version}}"
 
 # Homebrew
-brews:
+homebrew_casks:
   - name: tmpo
     repository:
       owner: DylanDevelops
       name: homebrew-tap
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    directory: Formula
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
     homepage: "https://github.com/DylanDevelops/tmpo"
     description: "Minimal CLI time tracker for developers"
-    license: "MIT"
-    install: |
-      bin.install "tmpo"
-      generate_completions_from_executable(bin/"tmpo", "completion")
+    completions:
+      bash: completions/tmpo.bash
+      zsh: completions/tmpo.zsh
+      fish: completions/tmpo.fish
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/tmpo"]
+          end
