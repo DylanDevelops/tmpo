@@ -1,6 +1,6 @@
 module github.com/DylanDevelops/tmpo
 
-go 1.25.5
+go 1.27.1
 
 require (
 	github.com/manifoldco/promptui v0.9.0
