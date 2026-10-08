@@ -1,40 +1,40 @@
 name: Test
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    test:
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
+        runs-on: ${{ matrix.os }}
 
-    steps:
-      - uses: actions/checkout@v7
+        steps:
+            - uses: actions/checkout@v7
 
-      - name: Set up Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: "1.25"
+            - name: Set up Go
+              uses: actions/setup-go@v7
+              with:
+                  go-version: "1.27"
 
-      - name: Build
-        run: go build -v ./...
+            - name: Build
+              run: go build -v ./...
 
-      - name: Run unit tests
-        run: go test -v ./...
+            - name: Run unit tests
+              run: go test -v ./...
 
-      - name: Run tests with race detection
-        run: go test -race -v ./...
+            - name: Run tests with race detection
+              run: go test -race -v ./...
 
-      - name: Test basic commands
-        run: |
-          go build -o tmpo${{ matrix.os == 'windows-latest' && '.exe' || '' }} .
-          ./tmpo${{ matrix.os == 'windows-latest' && '.exe' || '' }} --version
-          ./tmpo${{ matrix.os == 'windows-latest' && '.exe' || '' }} --help
+            - name: Test basic commands
+              run: |
+                  go build -o tmpo${{ matrix.os == 'windows-latest' && '.exe' || '' }} .
+                  ./tmpo${{ matrix.os == 'windows-latest' && '.exe' || '' }} --version
+                  ./tmpo${{ matrix.os == 'windows-latest' && '.exe' || '' }} --help
